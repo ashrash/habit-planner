@@ -868,6 +868,7 @@
   <script>
     const STORAGE_KEY = "habitTracker.weekly.v1";
     const NOTIFY_STORAGE_KEY = "habitTracker.notifications.v1";
+    const FALLBACK_STORAGE_PREFIX = "session:";
 
     const habitForm = document.getElementById("habitForm");
     const habitInput = document.getElementById("habitInput");
@@ -1062,7 +1063,7 @@
 
     function loadState() {
       try {
-        const raw = localStorage.getItem(STORAGE_KEY);
+        const raw = readStorage(STORAGE_KEY);
         if (!raw) return { habits: [] };
 
         const parsed = JSON.parse(raw);
@@ -1232,12 +1233,12 @@
     });
 
     function saveState() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      writeStorage(STORAGE_KEY, JSON.stringify(state));
     }
 
     function loadNotifyState() {
       try {
-        const raw = localStorage.getItem(NOTIFY_STORAGE_KEY);
+        const raw = readStorage(NOTIFY_STORAGE_KEY);
         if (!raw) return {};
         const parsed = JSON.parse(raw);
         return parsed && typeof parsed === "object" ? parsed : {};
@@ -1247,7 +1248,42 @@
     }
 
     function saveNotifyState() {
-      localStorage.setItem(NOTIFY_STORAGE_KEY, JSON.stringify(notifyState));
+      writeStorage(NOTIFY_STORAGE_KEY, JSON.stringify(notifyState));
+    }
+
+    function readStorage(key) {
+      try {
+        const value = localStorage.getItem(key);
+        if (value !== null) return value;
+      } catch {
+        // localStorage may be blocked on some mobile/private contexts
+      }
+
+      try {
+        return sessionStorage.getItem(FALLBACK_STORAGE_PREFIX + key);
+      } catch {
+        return null;
+      }
+    }
+
+    function writeStorage(key, value) {
+      let localWritten = false;
+      try {
+        localStorage.setItem(key, value);
+        localWritten = true;
+      } catch {
+        localWritten = false;
+      }
+
+      try {
+        if (localWritten) {
+          sessionStorage.removeItem(FALLBACK_STORAGE_PREFIX + key);
+        } else {
+          sessionStorage.setItem(FALLBACK_STORAGE_PREFIX + key, value);
+        }
+      } catch {
+        // If both fail, app continues in-memory for this session.
+      }
     }
 
     function updateNotifyButton() {
