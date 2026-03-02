@@ -1,0 +1,1846 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Weekly Habit Tracker</title>
+  <style>
+    :root {
+      --bg: #f3efe6;
+      --surface: #fffdf8;
+      --surface-2: #f8f5ec;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #ddd4c2;
+      --accent: #0f766e;
+      --accent-soft: #ccfbf1;
+      --danger-soft: #fee2e2;
+      --danger: #b91c1c;
+      --track: #e5e7eb;
+      --shadow: 0 10px 28px rgba(31, 41, 55, 0.1);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 10% 12%, #dbeafe 0%, transparent 30%),
+        radial-gradient(circle at 88% 88%, #fde68a 0%, transparent 30%),
+        var(--bg);
+      min-height: 100vh;
+      padding: 32px;
+    }
+
+    .app {
+      width: min(1520px, calc(100vw - 20px));
+      margin: 0 auto;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .header {
+      padding: 28px 30px;
+      background: linear-gradient(135deg, #ecfeff, #fef3c7);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: clamp(1.5rem, 1.2rem + 1.1vw, 2.2rem);
+    }
+
+    .header p {
+      margin: 6px 0 0;
+      color: var(--muted);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 390px 1fr;
+      min-height: 700px;
+    }
+
+    .panel {
+      padding: 24px;
+      border-right: 1px solid var(--border);
+      background: var(--surface-2);
+    }
+
+    .panel h2,
+    .main h2 {
+      margin: 0 0 12px;
+      font-size: 1.05rem;
+    }
+
+    .habit-form {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .time-inputs {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+    }
+
+    .habit-config {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .frequency-config {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .weekly-days {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 10px;
+      background: #fff;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px 10px;
+      align-items: center;
+    }
+
+    .weekly-day {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.82rem;
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    select {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 0.9rem;
+      color: var(--text);
+      background: #fff;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 0.96rem;
+      color: var(--text);
+      background: #fff;
+    }
+
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 12px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.92rem;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .habit-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 10px;
+    }
+
+    .habit-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      padding: 8px;
+    }
+
+    .habit-name {
+      padding: 6px;
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .habit-meta {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 2px;
+      font-weight: 600;
+    }
+
+    .habit-delete {
+      background: var(--danger-soft);
+      color: var(--danger);
+      padding: 6px 8px;
+      font-size: 0.82rem;
+    }
+
+    .main {
+      padding: 24px;
+      display: grid;
+      gap: 20px;
+      align-content: start;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      background: #eef2f7;
+      border-radius: 12px;
+      padding: 4px;
+      gap: 4px;
+      width: min(420px, 100%);
+      margin-bottom: 2px;
+      align-self: start;
+    }
+
+    .top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-weight: 700;
+      text-align: center;
+      white-space: nowrap;
+      min-height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+
+    .tab-btn.active {
+      background: #fff;
+      color: var(--text);
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
+    }
+
+    .week-nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .week-nav button {
+      background: #fff;
+      border: 1px solid var(--border);
+      color: var(--text);
+      min-width: 38px;
+    }
+
+    .view-pane {
+      display: grid;
+      gap: 18px;
+      align-content: start;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    .week-label {
+      font-weight: 700;
+      min-width: 250px;
+      text-align: center;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+    }
+
+    table {
+      width: 100%;
+      min-width: 740px;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      padding: 10px;
+      text-align: center;
+      font-size: 0.9rem;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+    th:last-child,
+    td:last-child { border-right: 0; }
+
+    th {
+      background: #fafaf9;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    th:first-child,
+    td:first-child {
+      text-align: left;
+      min-width: 190px;
+      position: sticky;
+      left: 0;
+      z-index: 1;
+      background: #fff;
+    }
+
+    th:first-child {
+      background: #fafaf9;
+      z-index: 2;
+    }
+
+    .day-title {
+      font-size: 0.82rem;
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .day-date {
+      font-size: 0.76rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .today-col {
+      background: #f0fdfa;
+    }
+
+    .cell-check {
+      width: 17px;
+      height: 17px;
+      cursor: pointer;
+    }
+
+    .cell-field {
+      display: grid;
+      gap: 6px;
+      justify-items: center;
+    }
+
+    .cell-unscheduled {
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .cell-value {
+      width: 90%;
+      min-width: 62px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 5px 6px;
+      font-size: 0.8rem;
+      text-align: center;
+      color: var(--text);
+      background: #fff;
+    }
+
+    .cell-value.number-only {
+      width: 100%;
+      min-width: 0;
+    }
+
+    .summary-row td {
+      background: #f8fafc;
+      font-weight: 700;
+    }
+
+    .summary-row td:first-child {
+      background: #f1f5f9;
+    }
+
+    .day-progress {
+      display: grid;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .day-progress-track {
+      width: 100%;
+      height: 7px;
+      border-radius: 99px;
+      background: #e2e8f0;
+      overflow: hidden;
+    }
+
+    .day-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #2563eb, #06b6d4);
+      width: 0;
+    }
+
+    .day-progress-value {
+      font-size: 0.76rem;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .weekly {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .week-row {
+      display: grid;
+      grid-template-columns: minmax(120px, 1fr) minmax(160px, 1.8fr) auto;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .track {
+      width: 100%;
+      height: 9px;
+      border-radius: 99px;
+      background: var(--track);
+      overflow: hidden;
+    }
+
+    .fill {
+      height: 100%;
+      background: linear-gradient(90deg, #22c55e, #06b6d4);
+      width: 0;
+    }
+
+    .daily-board {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(255px, 1fr));
+      gap: 16px;
+    }
+
+    .daily-card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fff;
+      display: grid;
+      gap: 12px;
+    }
+
+    .daily-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: start;
+    }
+
+    .daily-name {
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+
+    .daily-meta {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 3px;
+      font-weight: 600;
+    }
+
+    .daily-percent {
+      font-size: 1rem;
+      font-weight: 800;
+      color: #0b766e;
+      min-width: 44px;
+      text-align: right;
+    }
+
+    .daily-input-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 34px;
+    }
+
+    .daily-value {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 7px 8px;
+      font-size: 0.9rem;
+    }
+
+    .daily-track {
+      width: 100%;
+      height: 9px;
+      border-radius: 99px;
+      overflow: hidden;
+      background: var(--track);
+    }
+
+    .daily-fill {
+      width: 0;
+      height: 100%;
+      background: linear-gradient(90deg, #22c55e, #0ea5e9);
+    }
+
+    .daily-summary {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .daily-summary-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 700;
+      font-size: 0.92rem;
+    }
+
+    .monthly-grid-wrap {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .monthly-legend {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 0.8rem;
+      flex-wrap: wrap;
+    }
+
+    .legend-scale {
+      display: grid;
+      grid-template-columns: repeat(5, 18px);
+      gap: 4px;
+      align-items: center;
+    }
+
+    .legend-cell {
+      width: 18px;
+      height: 12px;
+      border-radius: 4px;
+      border: 1px solid #dbe6e4;
+    }
+
+    .month-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 6px;
+      color: var(--muted);
+      font-size: 0.76rem;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .month-cells {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .month-cell {
+      min-height: 70px;
+      border: 1px solid #d9e3df;
+      border-radius: 8px;
+      padding: 6px;
+      display: grid;
+      align-content: space-between;
+      gap: 6px;
+      background: #f8fafc;
+      transition: transform 0.12s ease;
+      cursor: pointer;
+    }
+
+    .month-cell:hover {
+      transform: translateY(-1px);
+    }
+
+    .month-cell.outside {
+      opacity: 0.45;
+    }
+
+    .month-cell.today {
+      outline: 2px solid #7dd3fc;
+      outline-offset: -2px;
+    }
+
+    .month-day {
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .month-value {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #0f766e;
+      justify-self: end;
+      background: rgba(255, 255, 255, 0.74);
+      border-radius: 999px;
+      padding: 2px 6px;
+    }
+
+    .monthly-stats {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .empty {
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+      color: var(--muted);
+      text-align: center;
+      padding: 22px;
+      background: #fff;
+    }
+
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .panel { border-right: 0; border-bottom: 1px solid var(--border); }
+      .week-label { min-width: 200px; }
+    }
+
+    @media (max-width: 540px) {
+      body { padding: 14px; }
+      .week-row { grid-template-columns: 1fr; }
+      .week-label { min-width: 150px; }
+      .tabs { width: 100%; }
+      .top-row { align-items: stretch; }
+      .top-actions { width: 100%; }
+      .top-actions button { flex: 1; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="header">
+      <h1>Habit Planner Dashboard</h1>
+      <p>Plan recurring habits, track daily execution, and review weekly and monthly momentum.</p>
+    </header>
+
+    <div class="layout">
+      <aside class="panel">
+        <h2>Habits</h2>
+        <form id="habitForm" class="habit-form" autocomplete="off">
+          <input id="habitInput" type="text" placeholder="Add habit (e.g. Workout)" maxlength="80" required />
+          <div class="habit-config">
+            <select id="habitType" aria-label="Habit type">
+              <option value="checkbox">Checkbox</option>
+              <option value="number">Target Goal</option>
+            </select>
+            <input id="habitTarget" type="text" inputmode="decimal" placeholder="Target goal" disabled />
+          </div>
+          <div class="frequency-config">
+            <select id="habitFrequency" aria-label="Frequency">
+              <option value="daily">Daily</option>
+              <option value="weekdays">Weekdays (Mon-Fri)</option>
+              <option value="weekly">Weekly (Choose days)</option>
+            </select>
+            <div id="habitWeeklyDays" class="weekly-days" hidden>
+              <label class="weekly-day"><input type="checkbox" name="habitWeeklyDays" value="1" checked />Mon</label>
+              <label class="weekly-day"><input type="checkbox" name="habitWeeklyDays" value="2" />Tue</label>
+              <label class="weekly-day"><input type="checkbox" name="habitWeeklyDays" value="3" />Wed</label>
+              <label class="weekly-day"><input type="checkbox" name="habitWeeklyDays" value="4" />Thu</label>
+              <label class="weekly-day"><input type="checkbox" name="habitWeeklyDays" value="5" />Fri</label>
+              <label class="weekly-day"><input type="checkbox" name="habitWeeklyDays" value="6" />Sat</label>
+              <label class="weekly-day"><input type="checkbox" name="habitWeeklyDays" value="0" />Sun</label>
+            </div>
+          </div>
+          <div class="time-inputs">
+            <select id="habitHour" aria-label="Hour"></select>
+            <select id="habitMinute" aria-label="Minute"></select>
+            <select id="habitAmPm" aria-label="AM or PM">
+              <option value="AM">AM</option>
+              <option value="PM">PM</option>
+            </select>
+          </div>
+          <button type="submit" class="btn-primary">Add Habit</button>
+        </form>
+        <ul id="habitList" class="habit-list"></ul>
+      </aside>
+
+      <section class="main">
+        <div class="top-row">
+          <div class="tabs">
+            <button id="tabDaily" type="button" class="tab-btn active">Daily</button>
+            <button id="tabWeekly" type="button" class="tab-btn">Weekly</button>
+            <button id="tabMonthly" type="button" class="tab-btn">Monthly</button>
+          </div>
+          <div class="top-actions">
+            <button id="importJson" type="button">Import JSON</button>
+            <button id="exportJson" type="button">Export JSON</button>
+          </div>
+        </div>
+        <input id="importFileInput" type="file" accept="application/json,.json" hidden />
+
+        <div id="emptyState" class="empty">Add at least one habit to start tracking this week.</div>
+
+        <div id="weeklyView" class="view-pane">
+          <div class="toolbar">
+            <h2>This Week Table</h2>
+            <div class="week-nav">
+              <button id="prevWeek" type="button" aria-label="Previous week">&lt;</button>
+              <div id="weekLabel" class="week-label"></div>
+              <button id="nextWeek" type="button" aria-label="Next week">&gt;</button>
+              <button id="todayWeek" type="button">Today</button>
+            </div>
+          </div>
+
+          <div id="tableWrap" class="table-wrap">
+            <table>
+              <thead>
+                <tr id="tableHeadRow"></tr>
+              </thead>
+              <tbody id="tableBody"></tbody>
+            </table>
+          </div>
+
+          <section id="weeklySection" class="weekly">
+            <h2>Weekly Progress (Per Habit)</h2>
+            <div id="weeklyRows"></div>
+          </section>
+        </div>
+
+        <div id="dailyView" class="view-pane">
+          <div class="toolbar">
+            <h2>Daily Tracking Board</h2>
+            <div class="week-nav">
+              <button id="prevDay" type="button" aria-label="Previous day">&lt;</button>
+              <div id="dayLabel" class="week-label"></div>
+              <button id="nextDay" type="button" aria-label="Next day">&gt;</button>
+              <button id="todayDay" type="button">Today</button>
+            </div>
+          </div>
+
+          <div id="dailyBoard" class="daily-board"></div>
+
+          <section class="daily-summary">
+            <div class="daily-summary-top">
+              <span>Day Completion</span>
+              <span id="dailySummaryPercent">0%</span>
+            </div>
+            <div class="daily-track">
+              <div id="dailySummaryFill" class="daily-fill"></div>
+            </div>
+          </section>
+        </div>
+
+        <div id="monthlyView" class="view-pane">
+          <div class="toolbar">
+            <h2>Monthly Heatmap</h2>
+            <div class="week-nav">
+              <button id="prevMonth" type="button" aria-label="Previous month">&lt;</button>
+              <div id="monthLabel" class="week-label"></div>
+              <button id="nextMonth" type="button" aria-label="Next month">&gt;</button>
+              <button id="todayMonth" type="button">Today</button>
+            </div>
+          </div>
+
+          <section class="monthly-grid-wrap">
+            <div class="monthly-legend">
+              <span>Completion intensity</span>
+              <div class="legend-scale">
+                <span class="legend-cell" style="background:#ecfeff;"></span>
+                <span class="legend-cell" style="background:#ccfbf1;"></span>
+                <span class="legend-cell" style="background:#99f6e4;"></span>
+                <span class="legend-cell" style="background:#5eead4;"></span>
+                <span class="legend-cell" style="background:#14b8a6;"></span>
+              </div>
+              <span>low -> high</span>
+            </div>
+
+            <div class="month-weekdays">
+              <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div>
+            </div>
+            <div id="monthCells" class="month-cells"></div>
+          </section>
+
+          <section class="monthly-stats">
+            <h2>Monthly Progress (Per Habit)</h2>
+            <div id="monthlyRows"></div>
+          </section>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "habitTracker.weekly.v1";
+
+    const habitForm = document.getElementById("habitForm");
+    const habitInput = document.getElementById("habitInput");
+    const habitType = document.getElementById("habitType");
+    const habitTarget = document.getElementById("habitTarget");
+    const habitFrequency = document.getElementById("habitFrequency");
+    const habitWeeklyDays = document.getElementById("habitWeeklyDays");
+    const habitWeeklyDayChecks = Array.from(document.querySelectorAll('input[name="habitWeeklyDays"]'));
+    const habitHour = document.getElementById("habitHour");
+    const habitMinute = document.getElementById("habitMinute");
+    const habitAmPm = document.getElementById("habitAmPm");
+    const habitList = document.getElementById("habitList");
+    const tabWeekly = document.getElementById("tabWeekly");
+    const tabDaily = document.getElementById("tabDaily");
+    const tabMonthly = document.getElementById("tabMonthly");
+    const prevWeekBtn = document.getElementById("prevWeek");
+    const nextWeekBtn = document.getElementById("nextWeek");
+    const todayWeekBtn = document.getElementById("todayWeek");
+    const prevDayBtn = document.getElementById("prevDay");
+    const nextDayBtn = document.getElementById("nextDay");
+    const todayDayBtn = document.getElementById("todayDay");
+    const prevMonthBtn = document.getElementById("prevMonth");
+    const nextMonthBtn = document.getElementById("nextMonth");
+    const todayMonthBtn = document.getElementById("todayMonth");
+    const importJsonBtn = document.getElementById("importJson");
+    const exportJsonBtn = document.getElementById("exportJson");
+    const importFileInput = document.getElementById("importFileInput");
+    const weekLabel = document.getElementById("weekLabel");
+    const dayLabel = document.getElementById("dayLabel");
+    const monthLabel = document.getElementById("monthLabel");
+    const emptyState = document.getElementById("emptyState");
+    const weeklyView = document.getElementById("weeklyView");
+    const dailyView = document.getElementById("dailyView");
+    const monthlyView = document.getElementById("monthlyView");
+    const tableWrap = document.getElementById("tableWrap");
+    const tableHeadRow = document.getElementById("tableHeadRow");
+    const tableBody = document.getElementById("tableBody");
+    const weeklySection = document.getElementById("weeklySection");
+    const weeklyRows = document.getElementById("weeklyRows");
+    const dailyBoard = document.getElementById("dailyBoard");
+    const dailySummaryPercent = document.getElementById("dailySummaryPercent");
+    const dailySummaryFill = document.getElementById("dailySummaryFill");
+    const monthCells = document.getElementById("monthCells");
+    const monthlyRows = document.getElementById("monthlyRows");
+
+    let state = loadState();
+    let weekOffset = 0;
+    let dayOffset = 0;
+    let monthOffset = 0;
+    let activeTab = "daily";
+
+    initTimePicker();
+    updateTargetInputState();
+    updateFrequencyInputState();
+    render();
+
+    habitForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const name = habitInput.value.trim();
+      if (!name) return;
+      const type = habitType.value;
+      const targetGoal = type === "number" ? toPositiveNumber(habitTarget.value) : null;
+      if (type === "number" && targetGoal === null) return;
+      const frequency = getSelectedFrequency();
+
+      state.habits.push({
+        id: makeId(),
+        name,
+        type,
+        targetGoal,
+        frequency,
+        timeOfDay: getSelectedTimeOfDay(),
+        entries: {}
+      });
+
+      habitInput.value = "";
+      habitType.value = "checkbox";
+      habitTarget.value = "";
+      habitFrequency.value = "daily";
+      resetWeeklyDayChecks();
+      updateTargetInputState();
+      updateFrequencyInputState();
+      saveState();
+      render();
+    });
+
+    habitType.addEventListener("change", () => {
+      updateTargetInputState();
+    });
+
+    habitFrequency.addEventListener("change", () => {
+      updateFrequencyInputState();
+    });
+
+    prevWeekBtn.addEventListener("click", () => {
+      weekOffset -= 1;
+      renderActiveView();
+    });
+
+    nextWeekBtn.addEventListener("click", () => {
+      weekOffset += 1;
+      renderActiveView();
+    });
+
+    todayWeekBtn.addEventListener("click", () => {
+      weekOffset = 0;
+      renderActiveView();
+    });
+
+    prevDayBtn.addEventListener("click", () => {
+      dayOffset -= 1;
+      renderActiveView();
+    });
+
+    nextDayBtn.addEventListener("click", () => {
+      dayOffset += 1;
+      renderActiveView();
+    });
+
+    todayDayBtn.addEventListener("click", () => {
+      dayOffset = 0;
+      renderActiveView();
+    });
+
+    tabWeekly.addEventListener("click", () => {
+      activeTab = "weekly";
+      renderActiveView();
+    });
+
+    tabDaily.addEventListener("click", () => {
+      activeTab = "daily";
+      renderActiveView();
+    });
+
+    tabMonthly.addEventListener("click", () => {
+      activeTab = "monthly";
+      renderActiveView();
+    });
+
+    prevMonthBtn.addEventListener("click", () => {
+      monthOffset -= 1;
+      renderActiveView();
+    });
+
+    nextMonthBtn.addEventListener("click", () => {
+      monthOffset += 1;
+      renderActiveView();
+    });
+
+    todayMonthBtn.addEventListener("click", () => {
+      monthOffset = 0;
+      renderActiveView();
+    });
+
+    exportJsonBtn.addEventListener("click", () => {
+      exportDataAsJson();
+    });
+
+    importJsonBtn.addEventListener("click", () => {
+      importFileInput.click();
+    });
+
+    importFileInput.addEventListener("change", async (event) => {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      await importDataFromJsonFile(file);
+      importFileInput.value = "";
+    });
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return { habits: [] };
+
+        const parsed = JSON.parse(raw);
+        const habits = Array.isArray(parsed.habits)
+          ? parsed.habits
+              .filter((h) => h && typeof h.id === "string" && typeof h.name === "string")
+              .map((h) => normalizeHabit(h))
+          : [];
+
+        return { habits };
+      } catch {
+        return { habits: [] };
+      }
+    }
+
+    function normalizeHabit(habit) {
+      const entries = normalizeEntries(habit.entries);
+      const legacyChecks = normalizeChecks(habit.checks);
+      for (const [date, done] of Object.entries(legacyChecks)) {
+        if (!entries[date]) entries[date] = { done: false, value: "" };
+        entries[date].done = done;
+      }
+      const normalizedType = normalizeHabitType(habit.type);
+      const normalizedTarget = normalizeTargetGoal(habit.targetGoal, normalizedType);
+      const normalizedFrequency = normalizeFrequency(habit.frequency);
+
+      return {
+        id: habit.id,
+        name: habit.name,
+        type: normalizedType,
+        targetGoal: normalizedTarget,
+        frequency: normalizedFrequency,
+        timeOfDay: normalizeTimeOfDay(habit.timeOfDay),
+        entries
+      };
+    }
+
+    function normalizeHabitType(value) {
+      return value === "number" ? "number" : "checkbox";
+    }
+
+    function normalizeTargetGoal(value, type) {
+      if (type !== "number") return null;
+      const parsed = toPositiveNumber(value);
+      return parsed === null ? 1 : parsed;
+    }
+
+    function normalizeFrequency(value) {
+      if (!value || typeof value !== "object") {
+        return { mode: "daily", weekdays: [] };
+      }
+      const mode = value.mode === "weekdays" || value.mode === "weekly" ? value.mode : "daily";
+      const weekdays = mode === "weekly" ? normalizeWeekdays(value.weekdays, value.weekday) : [];
+      return { mode, weekdays };
+    }
+
+    function normalizeWeekday(value) {
+      const day = Number(value);
+      if (!Number.isInteger(day) || day < 0 || day > 6) return 1;
+      return day;
+    }
+
+    function normalizeWeekdays(weekdays, legacyWeekday) {
+      if (Array.isArray(weekdays)) {
+        const cleaned = [...new Set(weekdays.map((day) => normalizeWeekday(day)))];
+        return cleaned.length > 0 ? cleaned : [1];
+      }
+      if (legacyWeekday !== undefined && legacyWeekday !== null) {
+        return [normalizeWeekday(legacyWeekday)];
+      }
+      return [1];
+    }
+
+    function normalizeChecks(checks) {
+      if (!checks || typeof checks !== "object") return {};
+      const clean = {};
+      for (const [date, done] of Object.entries(checks)) {
+        if (/^\d{4}-\d{2}-\d{2}$/.test(date) && done === true) {
+          clean[date] = true;
+        }
+      }
+      return clean;
+    }
+
+    function normalizeEntries(entries) {
+      if (!entries || typeof entries !== "object") return {};
+      const clean = {};
+      for (const [date, entry] of Object.entries(entries)) {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
+        if (!entry || typeof entry !== "object") continue;
+        clean[date] = {
+          done: entry.done === true,
+          value: typeof entry.value === "string" ? entry.value : ""
+        };
+      }
+      return clean;
+    }
+
+    function normalizeTimeOfDay(value) {
+      if (typeof value !== "string") return "07:00 AM";
+      if (!/^(0[1-9]|1[0-2]):[0-5][0-9] (AM|PM)$/.test(value)) return "07:00 AM";
+      return value;
+    }
+
+    function initTimePicker() {
+      for (let h = 1; h <= 12; h += 1) {
+        const option = document.createElement("option");
+        option.value = String(h).padStart(2, "0");
+        option.textContent = String(h).padStart(2, "0");
+        habitHour.appendChild(option);
+      }
+
+      for (let m = 0; m < 60; m += 5) {
+        const option = document.createElement("option");
+        option.value = String(m).padStart(2, "0");
+        option.textContent = String(m).padStart(2, "0");
+        habitMinute.appendChild(option);
+      }
+
+      habitHour.value = "07";
+      habitMinute.value = "00";
+      habitAmPm.value = "AM";
+    }
+
+    function getSelectedTimeOfDay() {
+      return `${habitHour.value}:${habitMinute.value} ${habitAmPm.value}`;
+    }
+
+    function updateTargetInputState() {
+      const isNumber = habitType.value === "number";
+      habitTarget.disabled = !isNumber;
+      habitTarget.required = isNumber;
+      if (!isNumber) habitTarget.value = "";
+    }
+
+    function updateFrequencyInputState() {
+      const isWeekly = habitFrequency.value === "weekly";
+      habitWeeklyDays.hidden = !isWeekly;
+      for (const checkbox of habitWeeklyDayChecks) {
+        checkbox.disabled = !isWeekly;
+      }
+    }
+
+    function getSelectedFrequency() {
+      const mode = habitFrequency.value;
+      if (mode === "weekly") {
+        const selected = habitWeeklyDayChecks
+          .filter((checkbox) => checkbox.checked)
+          .map((checkbox) => normalizeWeekday(checkbox.value));
+        return { mode: "weekly", weekdays: selected.length > 0 ? selected : [1] };
+      }
+      if (mode === "weekdays") {
+        return { mode: "weekdays", weekdays: [] };
+      }
+      return { mode: "daily", weekdays: [] };
+    }
+
+    function resetWeeklyDayChecks() {
+      for (const checkbox of habitWeeklyDayChecks) {
+        checkbox.checked = checkbox.value === "1";
+      }
+    }
+
+    habitTarget.addEventListener("blur", () => {
+      const formatted = formatNumberWithCommas(habitTarget.value);
+      habitTarget.value = formatted;
+    });
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function exportDataAsJson() {
+      const payload = {
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        habits: state.habits
+      };
+
+      const blob = new Blob([JSON.stringify(payload, null, 2)], {
+        type: "application/json"
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const dateStamp = toDateKey(new Date());
+      a.href = url;
+      a.download = `habit-tracker-${dateStamp}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    async function importDataFromJsonFile(file) {
+      try {
+        const text = await file.text();
+        const parsed = JSON.parse(text);
+        const incomingHabits = Array.isArray(parsed)
+          ? parsed
+          : Array.isArray(parsed.habits) ? parsed.habits : null;
+
+        if (!incomingHabits) {
+          alert("Invalid JSON format. Use a file exported from this app.");
+          return;
+        }
+
+        const habits = incomingHabits
+          .filter((h) => h && typeof h.id === "string" && typeof h.name === "string")
+          .map((h) => normalizeHabit(h));
+
+        state = { habits };
+        saveState();
+        render();
+        alert(`Imported ${habits.length} habit(s).`);
+      } catch {
+        alert("Could not import JSON. Please choose a valid export file.");
+      }
+    }
+
+    function makeId() {
+      if (typeof crypto !== "undefined" && crypto.randomUUID) {
+        return crypto.randomUUID();
+      }
+      return `habit-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    }
+
+    function deleteHabit(id) {
+      state.habits = state.habits.filter((habit) => habit.id !== id);
+      saveState();
+      render();
+    }
+
+    function ensureEntry(habit, dateKey) {
+      if (!habit.entries[dateKey]) {
+        habit.entries[dateKey] = { done: false, value: "" };
+      }
+      return habit.entries[dateKey];
+    }
+
+    function toggleHabitDate(habitId, dateKey, checked) {
+      const habit = state.habits.find((item) => item.id === habitId);
+      if (!habit) return;
+      const date = fromDateKey(dateKey);
+      if (!isScheduledForDate(habit, date)) return;
+      const entry = ensureEntry(habit, dateKey);
+      entry.done = checked;
+
+      saveState();
+      renderActiveView();
+    }
+
+    function updateHabitValue(habitId, dateKey, value) {
+      const habit = state.habits.find((item) => item.id === habitId);
+      if (!habit) return;
+      const date = fromDateKey(dateKey);
+      if (!isScheduledForDate(habit, date)) return;
+      const entry = ensureEntry(habit, dateKey);
+      entry.value = habit.type === "number"
+        ? formatNumberWithCommas(value)
+        : String(value).trim();
+      saveState();
+      renderActiveView();
+    }
+
+    function render() {
+      renderHabitList();
+      renderActiveView();
+    }
+
+    function renderActiveView() {
+      const hasHabits = state.habits.length > 0;
+      const isWeekly = activeTab === "weekly";
+      const isDaily = activeTab === "daily";
+      const isMonthly = activeTab === "monthly";
+
+      tabWeekly.classList.toggle("active", isWeekly);
+      tabDaily.classList.toggle("active", isDaily);
+      tabMonthly.classList.toggle("active", isMonthly);
+
+      emptyState.hidden = hasHabits;
+      weeklyView.hidden = !hasHabits || !isWeekly;
+      dailyView.hidden = !hasHabits || !isDaily;
+      monthlyView.hidden = !hasHabits || !isMonthly;
+
+      if (!hasHabits) return;
+
+      if (isWeekly) {
+        renderTable();
+      } else if (isDaily) {
+        renderDailyView();
+      } else {
+        renderMonthlyView();
+      }
+    }
+
+    function renderHabitList() {
+      habitList.innerHTML = "";
+
+      for (const habit of state.habits) {
+        const item = document.createElement("li");
+        item.className = "habit-item";
+
+        const name = document.createElement("div");
+        name.className = "habit-name";
+        name.textContent = habit.name;
+
+        const meta = document.createElement("div");
+        meta.className = "habit-meta";
+        const effectiveType = getEffectiveHabitType(habit);
+        const displayTarget = effectiveType === "number" ? ` | Target: ${formatNumberWithCommas(habit.targetGoal)}` : "";
+        meta.textContent = `Type: ${effectiveType === "number" ? "Target Goal" : "Checkbox"}${displayTarget} | ${formatFrequency(habit.frequency)} | Time: ${habit.timeOfDay}`;
+
+        const nameWrap = document.createElement("div");
+        nameWrap.append(name, meta);
+
+        const delBtn = document.createElement("button");
+        delBtn.type = "button";
+        delBtn.className = "habit-delete";
+        delBtn.textContent = "Delete";
+        delBtn.addEventListener("click", () => deleteHabit(habit.id));
+
+        item.append(nameWrap, delBtn);
+        habitList.appendChild(item);
+      }
+    }
+
+    function renderTable() {
+      const weekDates = getWeekDates(weekOffset);
+      const start = weekDates[0];
+      const end = weekDates[6];
+
+      weekLabel.textContent = `${formatDate(start)} - ${formatDate(end)}`;
+
+      tableHeadRow.innerHTML = "";
+      tableBody.innerHTML = "";
+
+      const habitHead = document.createElement("th");
+      habitHead.textContent = "Habit";
+      tableHeadRow.appendChild(habitHead);
+
+      for (const date of weekDates) {
+        const th = document.createElement("th");
+        if (isToday(date)) th.classList.add("today-col");
+
+        const t1 = document.createElement("div");
+        t1.className = "day-title";
+        t1.textContent = date.toLocaleDateString(undefined, { weekday: "short" });
+
+        const t2 = document.createElement("div");
+        t2.className = "day-date";
+        t2.textContent = `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}`;
+
+        th.append(t1, t2);
+        tableHeadRow.appendChild(th);
+      }
+
+      for (const habit of state.habits) {
+        const tr = document.createElement("tr");
+        const effectiveType = getEffectiveHabitType(habit);
+
+        const nameTd = document.createElement("td");
+        const typeLabel = effectiveType === "number" ? "Target Goal" : "Checkbox";
+        const targetText = effectiveType === "number" ? ` | Target: ${formatNumberWithCommas(habit.targetGoal)}` : "";
+        nameTd.innerHTML = `<strong>${escapeHtml(habit.name)}</strong><div class="habit-meta">${escapeHtml(typeLabel + targetText)} | ${escapeHtml(formatFrequency(habit.frequency))} | Time: ${escapeHtml(habit.timeOfDay)}</div>`;
+        tr.appendChild(nameTd);
+
+        for (const date of weekDates) {
+          const dateKey = toDateKey(date);
+          const td = document.createElement("td");
+          if (isToday(date)) td.classList.add("today-col");
+          const isScheduled = isScheduledForDate(habit, date);
+
+          const entry = habit.entries[dateKey] || { done: false, value: "" };
+
+          const cellField = document.createElement("div");
+          cellField.className = "cell-field";
+
+          if (!isScheduled) {
+            const unscheduled = document.createElement("div");
+            unscheduled.className = "cell-unscheduled";
+            unscheduled.textContent = "-";
+            cellField.append(unscheduled);
+          } else if (effectiveType === "checkbox") {
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.className = "cell-check";
+            checkbox.checked = !!entry.done;
+            checkbox.addEventListener("change", (event) => {
+              toggleHabitDate(habit.id, dateKey, event.target.checked);
+            });
+            cellField.append(checkbox);
+          } else {
+            const valueInput = document.createElement("input");
+            valueInput.type = "text";
+            valueInput.inputMode = "decimal";
+            valueInput.className = "cell-value number-only";
+            valueInput.placeholder = "Count";
+            valueInput.defaultValue = formatNumberWithCommas(entry.value);
+            valueInput.addEventListener("blur", (event) => {
+              updateHabitValue(habit.id, dateKey, event.target.value);
+            });
+            cellField.append(valueInput);
+          }
+
+          td.appendChild(cellField);
+          tr.appendChild(td);
+        }
+
+        tableBody.appendChild(tr);
+      }
+
+      const dayProgressRow = document.createElement("tr");
+      dayProgressRow.className = "summary-row";
+
+      const dayProgressLabel = document.createElement("td");
+      dayProgressLabel.textContent = "Day Progress";
+      dayProgressRow.appendChild(dayProgressLabel);
+
+      for (const date of weekDates) {
+        const td = document.createElement("td");
+        if (isToday(date)) td.classList.add("today-col");
+
+        let total = 0;
+        let scheduledCount = 0;
+        for (const habit of state.habits) {
+          if (!isScheduledForDate(habit, date)) continue;
+          const entry = habit.entries[toDateKey(date)];
+          total += getEntryPercent(habit, entry);
+          scheduledCount += 1;
+        }
+        const percent = scheduledCount === 0 ? 0 : Math.round(total / scheduledCount);
+
+        const wrap = document.createElement("div");
+        wrap.className = "day-progress";
+
+        const track = document.createElement("div");
+        track.className = "day-progress-track";
+
+        const fill = document.createElement("div");
+        fill.className = "day-progress-fill";
+        fill.style.width = `${percent}%`;
+
+        const value = document.createElement("div");
+        value.className = "day-progress-value";
+        value.textContent = `${percent}%`;
+
+        track.appendChild(fill);
+        wrap.append(track, value);
+        td.appendChild(wrap);
+        dayProgressRow.appendChild(td);
+      }
+
+      tableBody.appendChild(dayProgressRow);
+
+      renderWeeklyProgress(weekDates);
+    }
+
+    function renderDailyView() {
+      const day = getDateWithOffset(dayOffset);
+      const dayKey = toDateKey(day);
+      dayLabel.textContent = formatFullDate(day);
+      dailyBoard.innerHTML = "";
+
+      let totalPercent = 0;
+      let scheduledHabits = 0;
+
+      for (const habit of state.habits) {
+        if (!isScheduledForDate(habit, day)) continue;
+        const effectiveType = getEffectiveHabitType(habit);
+        const entry = habit.entries[dayKey] || { done: false, value: "" };
+        const percent = getEntryPercent(habit, entry);
+        totalPercent += percent;
+        scheduledHabits += 1;
+
+        const card = document.createElement("article");
+        card.className = "daily-card";
+
+        const head = document.createElement("div");
+        head.className = "daily-head";
+
+        const left = document.createElement("div");
+        const name = document.createElement("div");
+        name.className = "daily-name";
+        name.textContent = habit.name;
+
+        const meta = document.createElement("div");
+        meta.className = "daily-meta";
+        meta.textContent = effectiveType === "number"
+          ? `Target: ${formatNumberWithCommas(habit.targetGoal)} | ${formatFrequency(habit.frequency)} | Time: ${habit.timeOfDay}`
+          : `Checkbox | ${formatFrequency(habit.frequency)} | Time: ${habit.timeOfDay}`;
+
+        left.append(name, meta);
+
+        const pct = document.createElement("div");
+        pct.className = "daily-percent";
+        pct.textContent = `${percent}%`;
+
+        head.append(left, pct);
+
+        const inputRow = document.createElement("div");
+        inputRow.className = "daily-input-row";
+
+        if (effectiveType === "checkbox") {
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.className = "cell-check";
+          checkbox.checked = !!entry.done;
+          checkbox.addEventListener("change", (event) => {
+            toggleHabitDate(habit.id, dayKey, event.target.checked);
+          });
+
+          const label = document.createElement("span");
+          label.textContent = checkbox.checked ? "Completed" : "Mark done";
+
+          inputRow.append(checkbox, label);
+        } else {
+          const valueInput = document.createElement("input");
+          valueInput.type = "text";
+          valueInput.inputMode = "decimal";
+          valueInput.className = "daily-value";
+          valueInput.placeholder = `Enter count (Target ${formatNumberWithCommas(habit.targetGoal)})`;
+          valueInput.defaultValue = formatNumberWithCommas(entry.value);
+          valueInput.addEventListener("blur", (event) => {
+            updateHabitValue(habit.id, dayKey, event.target.value);
+          });
+          inputRow.append(valueInput);
+        }
+
+        const track = document.createElement("div");
+        track.className = "daily-track";
+
+        const fill = document.createElement("div");
+        fill.className = "daily-fill";
+        fill.style.width = `${percent}%`;
+
+        track.appendChild(fill);
+        card.append(head, inputRow, track);
+        dailyBoard.appendChild(card);
+      }
+
+      const avg = scheduledHabits === 0 ? 0 : Math.round(totalPercent / scheduledHabits);
+      dailySummaryPercent.textContent = `${avg}%`;
+      dailySummaryFill.style.width = `${avg}%`;
+    }
+
+    function renderMonthlyView() {
+      const monthDate = getMonthWithOffset(monthOffset);
+      monthLabel.textContent = monthDate.toLocaleDateString(undefined, {
+        month: "long",
+        year: "numeric"
+      });
+
+      const monthInfo = getMonthGrid(monthDate.getFullYear(), monthDate.getMonth());
+      monthCells.innerHTML = "";
+      monthlyRows.innerHTML = "";
+
+      for (const date of monthInfo.gridDates) {
+        const cell = document.createElement("div");
+        cell.className = "month-cell";
+        if (date.getMonth() !== monthDate.getMonth()) {
+          cell.classList.add("outside");
+        }
+        if (isToday(date)) {
+          cell.classList.add("today");
+        }
+
+        const dayNum = document.createElement("div");
+        dayNum.className = "month-day";
+        dayNum.textContent = String(date.getDate());
+
+        const dateKey = toDateKey(date);
+        const percent = getAveragePercentForDate(dateKey);
+        const value = document.createElement("div");
+        value.className = "month-value";
+        value.textContent = `${percent}%`;
+
+        cell.style.background = getHeatColor(percent);
+        cell.addEventListener("click", () => {
+          setDailyDate(date);
+          activeTab = "daily";
+          renderActiveView();
+        });
+        cell.append(dayNum, value);
+        monthCells.appendChild(cell);
+      }
+
+      for (const habit of state.habits) {
+        let totalPercent = 0;
+        let scheduledDays = 0;
+        for (const date of monthInfo.monthDates) {
+          if (!isScheduledForDate(habit, date)) continue;
+          const entry = habit.entries[toDateKey(date)];
+          totalPercent += getEntryPercent(habit, entry);
+          scheduledDays += 1;
+        }
+        const percent = scheduledDays === 0 ? 0 : Math.round(totalPercent / scheduledDays);
+
+        const row = document.createElement("div");
+        row.className = "week-row";
+
+        const label = document.createElement("div");
+        label.textContent = habit.name;
+
+        const track = document.createElement("div");
+        track.className = "track";
+
+        const fill = document.createElement("div");
+        fill.className = "fill";
+        fill.style.width = `${percent}%`;
+
+        const stat = document.createElement("div");
+        stat.textContent = `${percent}%`;
+
+        track.appendChild(fill);
+        row.append(label, track, stat);
+        monthlyRows.appendChild(row);
+      }
+    }
+
+    function renderWeeklyProgress(weekDates) {
+      weeklyRows.innerHTML = "";
+
+      for (const habit of state.habits) {
+        let totalPercent = 0;
+        let scheduledDays = 0;
+        for (const date of weekDates) {
+          if (!isScheduledForDate(habit, date)) continue;
+          const entry = habit.entries[toDateKey(date)];
+          totalPercent += getEntryPercent(habit, entry);
+          scheduledDays += 1;
+        }
+        const percent = scheduledDays === 0 ? 0 : Math.round(totalPercent / scheduledDays);
+
+        const row = document.createElement("div");
+        row.className = "week-row";
+
+        const label = document.createElement("div");
+        label.textContent = habit.name;
+
+        const track = document.createElement("div");
+        track.className = "track";
+
+        const fill = document.createElement("div");
+        fill.className = "fill";
+        fill.style.width = `${percent}%`;
+
+        const stat = document.createElement("div");
+        stat.textContent = `${percent}%`;
+
+        track.appendChild(fill);
+        row.append(label, track, stat);
+        weeklyRows.appendChild(row);
+      }
+    }
+
+    function getWeekDates(offset) {
+      const monday = getMonday(getDateWithOffset(0));
+      monday.setDate(monday.getDate() + offset * 7);
+
+      const dates = [];
+      for (let i = 0; i < 7; i += 1) {
+        const day = new Date(monday);
+        day.setDate(monday.getDate() + i);
+        dates.push(day);
+      }
+      return dates;
+    }
+
+    function getMonthWithOffset(offset) {
+      const date = new Date();
+      date.setDate(1);
+      date.setMonth(date.getMonth() + offset);
+      date.setHours(0, 0, 0, 0);
+      return date;
+    }
+
+    function getMonthGrid(year, month) {
+      const first = new Date(year, month, 1);
+      const start = new Date(first);
+      const day = start.getDay();
+      const mondayOffset = day === 0 ? -6 : 1 - day;
+      start.setDate(start.getDate() + mondayOffset);
+      start.setHours(0, 0, 0, 0);
+
+      const gridDates = [];
+      const monthDates = [];
+      for (let i = 0; i < 42; i += 1) {
+        const current = new Date(start);
+        current.setDate(start.getDate() + i);
+        gridDates.push(current);
+        if (current.getMonth() === month) {
+          monthDates.push(current);
+        }
+      }
+      return { gridDates, monthDates };
+    }
+
+    function getMonday(date) {
+      const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      const day = d.getDay();
+      const diff = day === 0 ? -6 : 1 - day;
+      d.setDate(d.getDate() + diff);
+      return d;
+    }
+
+    function getDateWithOffset(offset) {
+      const date = new Date();
+      date.setHours(0, 0, 0, 0);
+      date.setDate(date.getDate() + offset);
+      return date;
+    }
+
+    function toDateKey(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    }
+
+    function isToday(date) {
+      const now = new Date();
+      return date.getFullYear() === now.getFullYear() &&
+        date.getMonth() === now.getMonth() &&
+        date.getDate() === now.getDate();
+    }
+
+    function formatDate(date) {
+      return date.toLocaleDateString(undefined, {
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+      });
+    }
+
+    function formatFullDate(date) {
+      return date.toLocaleDateString(undefined, {
+        weekday: "long",
+        day: "2-digit",
+        month: "long",
+        year: "numeric"
+      });
+    }
+
+    function toPositiveNumber(value) {
+      const parsed = parseLooseNumber(value);
+      if (!Number.isFinite(parsed) || parsed <= 0) return null;
+      return parsed;
+    }
+
+    function getEntryPercent(habit, entry) {
+      if (!entry) return 0;
+      const effectiveType = getEffectiveHabitType(habit);
+      if (effectiveType === "checkbox") {
+        return entry.done ? 100 : 0;
+      }
+
+      const target = toPositiveNumber(habit.targetGoal);
+      if (target === null) return 0;
+      const value = parseLooseNumber(entry.value);
+      if (!Number.isFinite(value) || value <= 0) return 0;
+      return Math.min(100, Math.round((value / target) * 100));
+    }
+
+    function getEffectiveHabitType(habit) {
+      return habit.type === "number" ? "number" : "checkbox";
+    }
+
+    function parseLooseNumber(value) {
+      const cleaned = String(value ?? "")
+        .trim()
+        .replaceAll(",", "");
+      if (cleaned === "") return NaN;
+      return Number(cleaned);
+    }
+
+    function formatNumberWithCommas(value) {
+      const parsed = parseLooseNumber(value);
+      if (!Number.isFinite(parsed)) return String(value ?? "").trim();
+      return parsed.toLocaleString(undefined, { maximumFractionDigits: 2 });
+    }
+
+    function setDailyDate(date) {
+      const target = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      target.setHours(0, 0, 0, 0);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const oneDay = 24 * 60 * 60 * 1000;
+      dayOffset = Math.round((target.getTime() - today.getTime()) / oneDay);
+    }
+
+    function fromDateKey(dateKey) {
+      const [y, m, d] = String(dateKey).split("-").map(Number);
+      return new Date(y, m - 1, d);
+    }
+
+    function isScheduledForDate(habit, date) {
+      const frequency = normalizeFrequency(habit.frequency);
+      if (frequency.mode === "daily") return true;
+      const day = date.getDay();
+      if (frequency.mode === "weekdays") {
+        return day >= 1 && day <= 5;
+      }
+      if (frequency.mode === "weekly") {
+        return frequency.weekdays.includes(day);
+      }
+      return true;
+    }
+
+    function weekdayName(weekday) {
+      const names = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+      return names[normalizeWeekday(weekday)];
+    }
+
+    function formatFrequency(frequency) {
+      const normalized = normalizeFrequency(frequency);
+      if (normalized.mode === "daily") return "Daily";
+      if (normalized.mode === "weekdays") return "Weekdays";
+      const labels = normalized.weekdays
+        .map((day) => weekdayName(day).slice(0, 3))
+        .join(", ");
+      return `Every ${labels}`;
+    }
+
+    function getAveragePercentForDate(dateKey) {
+      if (state.habits.length === 0) return 0;
+      const date = fromDateKey(dateKey);
+      let total = 0;
+      let scheduledCount = 0;
+      for (const habit of state.habits) {
+        if (!isScheduledForDate(habit, date)) continue;
+        total += getEntryPercent(habit, habit.entries[dateKey]);
+        scheduledCount += 1;
+      }
+      return scheduledCount === 0 ? 0 : Math.round(total / scheduledCount);
+    }
+
+    function getHeatColor(percent) {
+      const clamped = Math.max(0, Math.min(100, percent));
+      const lightness = 97 - clamped * 0.48;
+      return `hsl(172 72% ${lightness}%)`;
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll("\"", "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+  </script>
+</body>
+</html>
