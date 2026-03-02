@@ -283,6 +283,10 @@
       display: none !important;
     }
 
+    .is-hidden {
+      display: none !important;
+    }
+
     .week-label {
       font-weight: 700;
       min-width: 250px;
@@ -772,7 +776,7 @@
 
         <div id="emptyState" class="empty">Add at least one habit to start tracking this week.</div>
 
-        <div id="weeklyView" class="view-pane">
+        <div id="weeklyView" class="view-pane" hidden>
           <div class="toolbar">
             <h2>This Week Table</h2>
             <div class="week-nav">
@@ -822,7 +826,7 @@
           </section>
         </div>
 
-        <div id="monthlyView" class="view-pane">
+        <div id="monthlyView" class="view-pane" hidden>
           <div class="toolbar">
             <h2>Monthly Heatmap</h2>
             <div class="week-nav">
@@ -1435,10 +1439,10 @@
       tabDaily.classList.toggle("active", isDaily);
       tabMonthly.classList.toggle("active", isMonthly);
 
-      emptyState.hidden = hasHabits;
-      weeklyView.hidden = !hasHabits || !isWeekly;
-      dailyView.hidden = !hasHabits || !isDaily;
-      monthlyView.hidden = !hasHabits || !isMonthly;
+      setVisible(emptyState, !hasHabits);
+      setVisible(weeklyView, hasHabits && isWeekly);
+      setVisible(dailyView, hasHabits && isDaily);
+      setVisible(monthlyView, hasHabits && isMonthly);
 
       if (!hasHabits) return;
 
@@ -1449,6 +1453,11 @@
       } else {
         renderMonthlyView();
       }
+    }
+
+    function setVisible(element, visible) {
+      element.hidden = !visible;
+      element.classList.toggle("is-hidden", !visible);
     }
 
     function renderHabitList() {
