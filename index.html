@@ -762,6 +762,8 @@
             <button id="tabMonthly" type="button" class="tab-btn">Monthly</button>
           </div>
           <div class="top-actions">
+            <button id="notifyToggle" type="button">Enable Notifications</button>
+            <button id="notifyTest" type="button">Test Notification</button>
             <button id="importJson" type="button">Import JSON</button>
             <button id="exportJson" type="button">Export JSON</button>
           </div>
@@ -861,6 +863,7 @@
 
   <script>
     const STORAGE_KEY = "habitTracker.weekly.v1";
+    const NOTIFY_STORAGE_KEY = "habitTracker.notifications.v1";
 
     const habitForm = document.getElementById("habitForm");
     const habitInput = document.getElementById("habitInput");
@@ -885,6 +888,8 @@
     const prevMonthBtn = document.getElementById("prevMonth");
     const nextMonthBtn = document.getElementById("nextMonth");
     const todayMonthBtn = document.getElementById("todayMonth");
+    const notifyToggleBtn = document.getElementById("notifyToggle");
+    const notifyTestBtn = document.getElementById("notifyTest");
     const importJsonBtn = document.getElementById("importJson");
     const exportJsonBtn = document.getElementById("exportJson");
     const importFileInput = document.getElementById("importFileInput");
@@ -907,6 +912,7 @@
     const monthlyRows = document.getElementById("monthlyRows");
 
     let state = loadState();
+    let notifyState = loadNotifyState();
     let weekOffset = 0;
     let dayOffset = 0;
     let monthOffset = 0;
@@ -915,6 +921,8 @@
     initTimePicker();
     updateTargetInputState();
     updateFrequencyInputState();
+    updateNotifyButton();
+    startNotificationLoop();
     render();
 
     habitForm.addEventListener("submit", (event) => {
@@ -1017,6 +1025,24 @@
 
     exportJsonBtn.addEventListener("click", () => {
       exportDataAsJson();
+    });
+
+    notifyToggleBtn.addEventListener("click", async () => {
+      await requestNotificationPermission();
+      updateNotifyButton();
+      checkDueNotifications();
+    });
+
+    notifyTestBtn.addEventListener("click", async () => {
+      await requestNotificationPermission();
+      updateNotifyButton();
+      if (!("Notification" in window) || Notification.permission !== "granted") {
+        alert("Notifications are not enabled. Please allow permission in browser settings.");
+        return;
+      }
+      new Notification("Habit Planner Test", {
+        body: "Notifications are working for this app."
+      });
     });
 
     importJsonBtn.addEventListener("click", () => {
@@ -1145,7 +1171,7 @@
         habitHour.appendChild(option);
       }
 
-      for (let m = 0; m < 60; m += 5) {
+      for (let m = 0; m < 60; m += 1) {
         const option = document.createElement("option");
         option.value = String(m).padStart(2, "0");
         option.textContent = String(m).padStart(2, "0");
@@ -1203,6 +1229,103 @@
 
     function saveState() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function loadNotifyState() {
+      try {
+        const raw = localStorage.getItem(NOTIFY_STORAGE_KEY);
+        if (!raw) return {};
+        const parsed = JSON.parse(raw);
+        return parsed && typeof parsed === "object" ? parsed : {};
+      } catch {
+        return {};
+      }
+    }
+
+    function saveNotifyState() {
+      localStorage.setItem(NOTIFY_STORAGE_KEY, JSON.stringify(notifyState));
+    }
+
+    function updateNotifyButton() {
+      if (!window.isSecureContext || !("Notification" in window)) {
+        notifyToggleBtn.textContent = "Notifications Unsupported";
+        notifyToggleBtn.disabled = true;
+        notifyTestBtn.disabled = true;
+        return;
+      }
+
+      if (Notification.permission === "granted") {
+        notifyToggleBtn.textContent = "Notifications Enabled";
+        notifyTestBtn.disabled = false;
+      } else if (Notification.permission === "denied") {
+        notifyToggleBtn.textContent = "Notifications Blocked";
+        notifyTestBtn.disabled = true;
+      } else {
+        notifyToggleBtn.textContent = "Enable Notifications";
+        notifyTestBtn.disabled = false;
+      }
+    }
+
+    async function requestNotificationPermission() {
+      if (!window.isSecureContext || !("Notification" in window)) return;
+      if (Notification.permission === "granted") return;
+      try {
+        await Notification.requestPermission();
+      } catch {
+        // no-op
+      }
+    }
+
+    function startNotificationLoop() {
+      checkDueNotifications();
+      setInterval(checkDueNotifications, 60 * 1000);
+    }
+
+    function checkDueNotifications() {
+      if (!("Notification" in window) || Notification.permission !== "granted") return;
+
+      const now = new Date();
+      const todayKey = toDateKey(now);
+      const nowMinutes = now.getHours() * 60 + now.getMinutes();
+      if (!notifyState[todayKey] || typeof notifyState[todayKey] !== "object") {
+        notifyState[todayKey] = {};
+      }
+
+      for (const habit of state.habits) {
+        if (!isScheduledForDate(habit, now)) continue;
+        if (notifyState[todayKey][habit.id]) continue;
+
+        const dueAt = parseTimeOfDayToMinutes(habit.timeOfDay);
+        if (dueAt === null || nowMinutes < dueAt) continue;
+
+        const percent = getEntryPercent(habit, habit.entries[todayKey]);
+        if (percent >= 100) {
+          notifyState[todayKey][habit.id] = true;
+          continue;
+        }
+
+        const body = habit.type === "number"
+          ? `Target ${formatNumberWithCommas(habit.targetGoal)} pending for today (${habit.timeOfDay}).`
+          : `Task pending for today (${habit.timeOfDay}).`;
+
+        new Notification(`Habit Reminder: ${habit.name}`, {
+          body,
+          tag: `habit-${habit.id}-${todayKey}`
+        });
+        notifyState[todayKey][habit.id] = true;
+      }
+
+      cleanupNotifyState(todayKey);
+      saveNotifyState();
+    }
+
+    function cleanupNotifyState(todayKey) {
+      const cutoffDate = fromDateKey(todayKey);
+      cutoffDate.setDate(cutoffDate.getDate() - 14);
+      const cutoffKey = toDateKey(cutoffDate);
+      for (const key of Object.keys(notifyState)) {
+        if (key < cutoffKey) delete notifyState[key];
+      }
     }
 
     function exportDataAsJson() {
@@ -1812,6 +1935,18 @@
       const parsed = parseLooseNumber(value);
       if (!Number.isFinite(parsed)) return String(value ?? "").trim();
       return parsed.toLocaleString(undefined, { maximumFractionDigits: 2 });
+    }
+
+    function parseTimeOfDayToMinutes(timeOfDay) {
+      const match = /^(\d{2}):(\d{2}) (AM|PM)$/.exec(String(timeOfDay || ""));
+      if (!match) return null;
+      let hour = Number(match[1]);
+      const minute = Number(match[2]);
+      const period = match[3];
+      if (!Number.isInteger(hour) || !Number.isInteger(minute)) return null;
+      if (hour === 12) hour = 0;
+      if (period === "PM") hour += 12;
+      return hour * 60 + minute;
     }
 
     function setDailyDate(date) {
