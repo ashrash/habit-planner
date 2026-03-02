@@ -974,44 +974,49 @@
 
     habitForm.addEventListener("submit", (event) => {
       event.preventDefault();
-      const name = habitInput.value.trim();
-      if (!name) {
-        showToast("Could not add task.\nReason: task name is required.");
-        return;
-      }
-      const type = habitType.value;
-      const targetGoal = type === "number" ? toPositiveNumber(habitTarget.value) : null;
-      if (type === "number" && targetGoal === null) {
-        showToast("Could not add task.\nReason: target goal must be a positive number.");
-        return;
-      }
-      const frequency = getSelectedFrequency();
-      const newHabit = {
-        id: makeId(),
-        name,
-        type,
-        targetGoal,
-        frequency,
-        timeOfDay: getSelectedTimeOfDay(),
-        entries: {}
-      };
-      state.habits.push(newHabit);
+      try {
+        const name = habitInput.value.trim();
+        if (!name) {
+          showToast("Could not add task.\nReason: task name is required.");
+          return;
+        }
+        const type = habitType.value;
+        const targetGoal = type === "number" ? toPositiveNumber(habitTarget.value) : null;
+        if (type === "number" && targetGoal === null) {
+          showToast("Could not add task.\nReason: target goal must be a positive number.");
+          return;
+        }
+        const frequency = getSelectedFrequency();
+        const newHabit = {
+          id: makeId(),
+          name,
+          type,
+          targetGoal,
+          frequency,
+          timeOfDay: getSelectedTimeOfDay(),
+          entries: {}
+        };
+        state.habits.push(newHabit);
 
-      const saveResult = saveState();
-      if (!saveResult.ok) {
-        state.habits = state.habits.filter((habit) => habit.id !== newHabit.id);
-        showToast(`Could not add task.\n${formatError(saveResult.error)}`);
-        return;
-      }
+        const saveResult = saveState();
+        if (!saveResult || !saveResult.ok) {
+          state.habits = state.habits.filter((habit) => habit.id !== newHabit.id);
+          const error = saveResult && saveResult.error ? saveResult.error : new Error("Unknown save failure.");
+          showToast(`Could not add task.\n${formatError(error)}`);
+          return;
+        }
 
-      habitInput.value = "";
-      habitType.value = "checkbox";
-      habitTarget.value = "";
-      habitFrequency.value = "daily";
-      resetWeeklyDayChecks();
-      updateTargetInputState();
-      updateFrequencyInputState();
-      render();
+        habitInput.value = "";
+        habitType.value = "checkbox";
+        habitTarget.value = "";
+        habitFrequency.value = "daily";
+        resetWeeklyDayChecks();
+        updateTargetInputState();
+        updateFrequencyInputState();
+        render();
+      } catch (error) {
+        showToast(`Could not add task.\n${formatError(error)}`);
+      }
     });
 
     habitType.addEventListener("change", () => {
@@ -1089,7 +1094,7 @@
     notifyToggleBtn.addEventListener("click", async () => {
       await requestNotificationPermission();
       updateNotifyButton();
-      checkDueNotifications();
+      safeCheckDueNotifications();
     });
 
     notifyTestBtn.addEventListener("click", async () => {
@@ -1367,6 +1372,7 @@
     }
 
     function updateNotifyButton() {
+      if (!notifyToggleBtn || !notifyTestBtn) return;
       if (!window.isSecureContext || !("Notification" in window)) {
         notifyToggleBtn.textContent = "Notifications Unsupported";
         notifyToggleBtn.disabled = true;
@@ -1397,8 +1403,17 @@
     }
 
     function startNotificationLoop() {
-      checkDueNotifications();
-      setInterval(checkDueNotifications, 60 * 1000);
+      safeCheckDueNotifications();
+      setInterval(safeCheckDueNotifications, 60 * 1000);
+    }
+
+    function safeCheckDueNotifications() {
+      try {
+        checkDueNotifications();
+      } catch (error) {
+        // Keep notification failures isolated from task flow.
+        console.error("Notification check failed:", error);
+      }
     }
 
     function checkDueNotifications() {
@@ -1428,11 +1443,16 @@
           ? `Target ${formatNumberWithCommas(habit.targetGoal)} pending for today (${habit.timeOfDay}).`
           : `Task pending for today (${habit.timeOfDay}).`;
 
-        new Notification(`Habit Reminder: ${habit.name}`, {
-          body,
-          tag: `habit-${habit.id}-${todayKey}`
-        });
-        notifyState[todayKey][habit.id] = true;
+        try {
+          new Notification(`Habit Reminder: ${habit.name}`, {
+            body,
+            tag: `habit-${habit.id}-${todayKey}`
+          });
+          notifyState[todayKey][habit.id] = true;
+        } catch (error) {
+          // Mobile browsers can reject constructor in some contexts.
+          console.error("Notification display failed:", error);
+        }
       }
 
       cleanupNotifyState(todayKey);
