@@ -252,6 +252,7 @@
       align-items: center;
       justify-content: center;
       line-height: 1;
+      pointer-events: auto;
     }
 
     .tab-btn.active {
@@ -663,8 +664,13 @@
       .header { padding: 22px 20px; }
       .main { padding: 18px; gap: 16px; }
       .panel { padding: 18px; }
-      .top-row { align-items: stretch; }
+      .top-row {
+        display: grid;
+        grid-template-columns: 1fr;
+        align-items: stretch;
+      }
       .tabs { width: 100%; }
+      .tabs { position: relative; z-index: 2; }
       .top-actions { width: 100%; }
       .top-actions button { flex: 1; }
       .toolbar { align-items: stretch; }
@@ -926,6 +932,9 @@
     initTimePicker();
     updateTargetInputState();
     updateFrequencyInputState();
+    tabDaily.disabled = false;
+    tabWeekly.disabled = false;
+    tabMonthly.disabled = false;
     updateNotifyButton();
     startNotificationLoop();
     render();
