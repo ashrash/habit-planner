@@ -35,7 +35,7 @@
     }
 
     .app {
-      width: min(1520px, calc(100vw - 20px));
+      width: min(1520px, 100%);
       margin: 0 auto;
       border: 1px solid var(--border);
       border-radius: 18px;
@@ -651,16 +651,58 @@
       .layout { grid-template-columns: 1fr; }
       .panel { border-right: 0; border-bottom: 1px solid var(--border); }
       .week-label { min-width: 200px; }
+      .daily-board { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+    }
+
+    @media (max-width: 700px) {
+      body { padding: 18px; }
+      .header { padding: 22px 20px; }
+      .main { padding: 18px; gap: 16px; }
+      .panel { padding: 18px; }
+      .top-row { align-items: stretch; }
+      .tabs { width: 100%; }
+      .top-actions { width: 100%; }
+      .top-actions button { flex: 1; }
+      .toolbar { align-items: stretch; }
+      .week-nav {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+      }
+      .week-label {
+        order: 2;
+        flex: 1 0 100%;
+        min-width: 0;
+        text-align: left;
+      }
+      .week-nav button {
+        order: 1;
+        min-width: 34px;
+        width: auto;
+        padding: 7px 9px;
+        font-size: 0.84rem;
+      }
+      .month-cell { min-height: 58px; }
     }
 
     @media (max-width: 540px) {
       body { padding: 14px; }
+      .header { padding: 18px 16px; }
+      .main { padding: 14px; }
+      .panel { padding: 14px; }
+      .habit-config,
+      .frequency-config,
+      .time-inputs { grid-template-columns: 1fr; }
+      .weekly-days { grid-template-columns: 1fr 1fr; }
+      .daily-board { grid-template-columns: 1fr; }
+      .month-cells { gap: 4px; }
+      .month-cell { min-height: 52px; padding: 5px; }
+      .month-value { font-size: 0.7rem; padding: 1px 5px; }
       .week-row { grid-template-columns: 1fr; }
       .week-label { min-width: 150px; }
-      .tabs { width: 100%; }
-      .top-row { align-items: stretch; }
-      .top-actions { width: 100%; }
-      .top-actions button { flex: 1; }
+      table { min-width: 680px; }
     }
   </style>
 </head>
