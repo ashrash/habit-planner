@@ -116,5 +116,5 @@ Layouts, controls, and grids adapt across breakpoints for touch and smaller scre
 
 ## License
 
-MIT (you can replace this with your preferred license).
+MIT
 
