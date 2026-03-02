@@ -133,6 +133,95 @@
       color: #6b7280;
     }
 
+    .reward-wallet {
+      border: 1px solid var(--border);
+      background: #fff;
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .reward-title {
+      font-size: 0.86rem;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .reward-form {
+      display: grid;
+      gap: 8px;
+    }
+
+    .reward-form-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .reward-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .reward-item {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fafaf9;
+      padding: 8px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .reward-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .reward-name {
+      font-size: 0.84rem;
+      font-weight: 700;
+      color: #1f2937;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .reward-meta {
+      font-size: 0.74rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .reward-delete {
+      background: #fee2e2;
+      color: #b91c1c;
+      border: 0;
+      border-radius: 8px;
+      padding: 4px 8px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .reward-track {
+      width: 100%;
+      height: 8px;
+      border-radius: 99px;
+      background: #e5e7eb;
+      overflow: hidden;
+    }
+
+    .reward-fill {
+      width: 0;
+      height: 100%;
+      background: linear-gradient(90deg, #f97316, #f59e0b);
+    }
+
     .panel h2,
     .main h2 {
       margin: 0 0 12px;
@@ -915,6 +1004,17 @@
           </div>
           <div id="streakValue" class="streak-value zero">0</div>
         </section>
+        <section class="reward-wallet">
+          <div class="reward-title">Self-Reward Wallet</div>
+          <form id="rewardForm" class="reward-form" autocomplete="off">
+            <input id="rewardInput" type="text" placeholder="Reward (e.g. New headphones)" maxlength="80" required />
+            <div class="reward-form-row">
+              <input id="rewardTarget" type="number" min="1" step="1" placeholder="Target days" required />
+              <button id="rewardAddBtn" class="btn-primary" type="submit">Add</button>
+            </div>
+          </form>
+          <div id="rewardList" class="reward-list"></div>
+        </section>
         <h2>Habits</h2>
         <form id="habitForm" class="habit-form" autocomplete="off">
           <input id="habitInput" type="text" placeholder="Add habit (e.g. Workout)" maxlength="80" required />
@@ -1070,6 +1170,10 @@
 
     const habitForm = document.getElementById("habitForm");
     const habitInput = document.getElementById("habitInput");
+    const rewardForm = document.getElementById("rewardForm");
+    const rewardInput = document.getElementById("rewardInput");
+    const rewardTarget = document.getElementById("rewardTarget");
+    const rewardList = document.getElementById("rewardList");
     const habitType = document.getElementById("habitType");
     const habitTarget = document.getElementById("habitTarget");
     const habitFrequency = document.getElementById("habitFrequency");
@@ -1186,6 +1290,38 @@
       updateTargetInputState();
     });
 
+    rewardForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const title = rewardInput.value.trim();
+      const targetDays = Math.trunc(Number(rewardTarget.value));
+      if (!title) {
+        showToast("Could not add reward.\nReason: reward title is required.");
+        return;
+      }
+      if (!Number.isFinite(targetDays) || targetDays <= 0) {
+        showToast("Could not add reward.\nReason: target days must be a positive number.");
+        return;
+      }
+
+      const reward = {
+        id: makeId(),
+        title,
+        targetDays
+      };
+      state.rewards.push(reward);
+      const saveResult = saveState();
+      if (!saveResult || !saveResult.ok) {
+        state.rewards = state.rewards.filter((item) => item.id !== reward.id);
+        const error = saveResult && saveResult.error ? saveResult.error : new Error("Unknown save failure.");
+        showToast(`Could not add reward.\n${formatError(error)}`);
+        return;
+      }
+
+      rewardInput.value = "";
+      rewardTarget.value = "";
+      renderRewardWallet();
+    });
+
     habitFrequency.addEventListener("change", () => {
       updateFrequencyInputState();
     });
@@ -1286,7 +1422,7 @@
     function loadState() {
       try {
         const raw = readStorage(STORAGE_KEY);
-        if (!raw) return { habits: [] };
+        if (!raw) return { habits: [], rewards: [] };
 
         const parsed = JSON.parse(raw);
         const habits = Array.isArray(parsed.habits)
@@ -1294,11 +1430,26 @@
               .filter((h) => h && typeof h.id === "string" && typeof h.name === "string")
               .map((h) => normalizeHabit(h))
           : [];
+        const rewards = normalizeRewards(parsed.rewards);
 
-        return { habits };
+        return { habits, rewards };
       } catch {
-        return { habits: [] };
+        return { habits: [], rewards: [] };
       }
+    }
+
+    function normalizeRewards(rewards) {
+      if (!Array.isArray(rewards)) return [];
+      return rewards
+        .filter((item) => item && typeof item.id === "string" && typeof item.title === "string")
+        .map((item) => {
+          const targetDays = Math.max(1, Math.trunc(Number(item.targetDays) || 1));
+          return {
+            id: item.id,
+            title: item.title.trim() || "Reward",
+            targetDays
+          };
+        });
     }
 
     function normalizeHabit(habit) {
@@ -1669,7 +1820,8 @@
           .filter((h) => h && typeof h.id === "string" && typeof h.name === "string")
           .map((h) => normalizeHabit(h));
 
-        state = { habits };
+        const rewards = normalizeRewards(parsed.rewards);
+        state = { habits, rewards };
         saveState();
         render();
         alert(`Imported ${habits.length} habit(s).`);
@@ -1689,6 +1841,12 @@
       state.habits = state.habits.filter((habit) => habit.id !== id);
       saveState();
       render();
+    }
+
+    function deleteReward(id) {
+      state.rewards = state.rewards.filter((reward) => reward.id !== id);
+      saveState();
+      renderRewardWallet();
     }
 
     function ensureEntry(habit, dateKey) {
@@ -1731,6 +1889,7 @@
 
     function render() {
       renderOverallStreak();
+      renderRewardWallet();
       renderHabitList();
       renderActiveView();
     }
@@ -1744,6 +1903,7 @@
 
     function renderActiveView() {
       renderOverallStreak();
+      renderRewardWallet();
       renderHabitList();
       const hasHabits = state.habits.length > 0;
       const isWeekly = activeTab === "weekly";
@@ -1792,7 +1952,7 @@
 
         const streakSide = document.createElement("span");
         streakSide.className = "habit-streak-side";
-        streakSide.textContent = `🔥 ${formatDayCount(calculateHabitStreak(habit))}`;
+        streakSide.textContent = `${String.fromCodePoint(0x1F525)} ${formatDayCount(calculateHabitStreak(habit))}`;
 
         const nameRow = document.createElement("div");
         nameRow.className = "habit-name-row";
@@ -1815,6 +1975,58 @@
 
         item.append(nameWrap, delBtn);
         habitList.appendChild(item);
+      }
+    }
+
+    function renderRewardWallet() {
+      rewardList.innerHTML = "";
+      const streak = calculateOverallStreak();
+      const rewards = Array.isArray(state.rewards) ? state.rewards : [];
+
+      if (rewards.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "reward-meta";
+        empty.textContent = "Add a reward goal to unlock motivation milestones.";
+        rewardList.appendChild(empty);
+        return;
+      }
+
+      for (const reward of rewards) {
+        const progress = Math.min(100, Math.round((streak / reward.targetDays) * 100));
+        const remaining = Math.max(0, reward.targetDays - streak);
+        const statusText = remaining === 0 ? "Unlocked" : `${remaining} day${remaining === 1 ? "" : "s"} to go`;
+
+        const item = document.createElement("div");
+        item.className = "reward-item";
+
+        const top = document.createElement("div");
+        top.className = "reward-top";
+
+        const name = document.createElement("div");
+        name.className = "reward-name";
+        name.textContent = reward.title;
+
+        const del = document.createElement("button");
+        del.type = "button";
+        del.className = "reward-delete";
+        del.textContent = "Delete";
+        del.addEventListener("click", () => deleteReward(reward.id));
+        top.append(name, del);
+
+        const meta = document.createElement("div");
+        meta.className = "reward-meta";
+        meta.textContent = `Goal ${reward.targetDays} days | Progress ${progress}% | ${statusText}`;
+
+        const track = document.createElement("div");
+        track.className = "reward-track";
+
+        const fill = document.createElement("div");
+        fill.className = "reward-fill";
+        fill.style.width = `${progress}%`;
+        track.appendChild(fill);
+
+        item.append(top, meta, track);
+        rewardList.appendChild(item);
       }
     }
 
@@ -2437,3 +2649,4 @@
   </script>
 </body>
 </html>
+
