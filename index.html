@@ -652,6 +652,37 @@
       background: #fff;
     }
 
+    .toast-wrap {
+      position: fixed;
+      right: 14px;
+      bottom: 14px;
+      z-index: 9999;
+      display: grid;
+      gap: 8px;
+      width: min(460px, calc(100vw - 28px));
+      pointer-events: none;
+    }
+
+    .toast {
+      pointer-events: auto;
+      border-radius: 10px;
+      border: 1px solid #fecaca;
+      background: #fff1f2;
+      color: #881337;
+      padding: 10px 12px;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.14);
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 0.84rem;
+      line-height: 1.35;
+    }
+
+    .toast.success {
+      border-color: #bbf7d0;
+      background: #f0fdf4;
+      color: #14532d;
+    }
+
     @media (max-width: 900px) {
       .layout { grid-template-columns: 1fr; }
       .panel { border-right: 0; border-bottom: 1px solid var(--border); }
@@ -870,6 +901,7 @@
       </section>
     </div>
   </main>
+  <div id="toastWrap" class="toast-wrap"></div>
 
   <script>
     const STORAGE_KEY = "habitTracker.weekly.v1";
@@ -921,6 +953,7 @@
     const dailySummaryFill = document.getElementById("dailySummaryFill");
     const monthCells = document.getElementById("monthCells");
     const monthlyRows = document.getElementById("monthlyRows");
+    const toastWrap = document.getElementById("toastWrap");
 
     let state = loadState();
     let notifyState = loadNotifyState();
@@ -942,13 +975,18 @@
     habitForm.addEventListener("submit", (event) => {
       event.preventDefault();
       const name = habitInput.value.trim();
-      if (!name) return;
+      if (!name) {
+        showToast("Could not add task.\nReason: task name is required.");
+        return;
+      }
       const type = habitType.value;
       const targetGoal = type === "number" ? toPositiveNumber(habitTarget.value) : null;
-      if (type === "number" && targetGoal === null) return;
+      if (type === "number" && targetGoal === null) {
+        showToast("Could not add task.\nReason: target goal must be a positive number.");
+        return;
+      }
       const frequency = getSelectedFrequency();
-
-      state.habits.push({
+      const newHabit = {
         id: makeId(),
         name,
         type,
@@ -956,7 +994,15 @@
         frequency,
         timeOfDay: getSelectedTimeOfDay(),
         entries: {}
-      });
+      };
+      state.habits.push(newHabit);
+
+      const saveResult = saveState();
+      if (!saveResult.ok) {
+        state.habits = state.habits.filter((habit) => habit.id !== newHabit.id);
+        showToast(`Could not add task.\n${formatError(saveResult.error)}`);
+        return;
+      }
 
       habitInput.value = "";
       habitType.value = "checkbox";
@@ -965,7 +1011,6 @@
       resetWeeklyDayChecks();
       updateTargetInputState();
       updateFrequencyInputState();
-      saveState();
       render();
     });
 
@@ -1242,7 +1287,7 @@
     });
 
     function saveState() {
-      writeStorage(STORAGE_KEY, JSON.stringify(state));
+      return writeStorage(STORAGE_KEY, JSON.stringify(state));
     }
 
     function loadNotifyState() {
@@ -1257,7 +1302,7 @@
     }
 
     function saveNotifyState() {
-      writeStorage(NOTIFY_STORAGE_KEY, JSON.stringify(notifyState));
+      return writeStorage(NOTIFY_STORAGE_KEY, JSON.stringify(notifyState));
     }
 
     function readStorage(key) {
@@ -1276,22 +1321,48 @@
     }
 
     function writeStorage(key, value) {
-      let localWritten = false;
+      let localError = null;
       try {
         localStorage.setItem(key, value);
-        localWritten = true;
+        try {
+          sessionStorage.removeItem(FALLBACK_STORAGE_PREFIX + key);
+        } catch {
+          // ignore cleanup failures
+        }
+        return { ok: true, backend: "local" };
       } catch {
-        localWritten = false;
+        localError = new Error("localStorage write failed.");
       }
 
       try {
-        if (localWritten) {
-          sessionStorage.removeItem(FALLBACK_STORAGE_PREFIX + key);
-        } else {
-          sessionStorage.setItem(FALLBACK_STORAGE_PREFIX + key, value);
-        }
+        sessionStorage.setItem(FALLBACK_STORAGE_PREFIX + key, value);
+        return { ok: true, backend: "session" };
       } catch {
-        // If both fail, app continues in-memory for this session.
+        const storageError = new Error("sessionStorage write failed.");
+        const details = `${formatError(localError)}\n${formatError(storageError)}`.trim();
+        return { ok: false, error: new Error(details || "Storage write failed.") };
+      }
+    }
+
+    function showToast(message, type = "error", timeoutMs = 8000) {
+      const toast = document.createElement("div");
+      toast.className = `toast ${type === "success" ? "success" : ""}`.trim();
+      toast.textContent = String(message);
+      toastWrap.appendChild(toast);
+      setTimeout(() => {
+        toast.remove();
+      }, timeoutMs);
+    }
+
+    function formatError(error) {
+      if (!error) return "Unknown error.";
+      if (typeof error === "string") return error;
+      if (error.stack) return error.stack;
+      if (error.message) return error.message;
+      try {
+        return JSON.stringify(error, null, 2);
+      } catch {
+        return String(error);
       }
     }
 
