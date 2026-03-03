@@ -36,7 +36,7 @@
     }
 
     .app {
-      width: min(1520px, 100%);
+      width: min(1760px, 100%);
       margin: 0 auto;
       border: 1px solid var(--border);
       border-radius: 18px;
@@ -77,24 +77,32 @@
 
     .layout {
       display: grid;
-      grid-template-columns: 390px 1fr;
+      grid-template-columns: minmax(320px, 360px) minmax(0, 1fr);
       min-height: 700px;
+      align-items: start;
     }
 
     .panel {
-      padding: 24px;
+      padding: 32px 28px;
       border-right: 1px solid var(--border);
+      border-bottom: 0;
       background: var(--surface-2);
+      display: grid;
+      align-content: start;
+      gap: 18px;
+      min-width: 0;
+      position: relative;
+      z-index: 5;
+      overflow: visible;
     }
 
     .streak-card {
       border: 1px solid var(--border);
       background: #fff;
       border-radius: 12px;
-      padding: 12px;
-      margin-bottom: 14px;
+      padding: 14px;
       display: grid;
-      gap: 4px;
+      gap: 6px;
     }
 
     .streak-top {
@@ -137,10 +145,47 @@
       border: 1px solid var(--border);
       background: #fff;
       border-radius: 12px;
-      padding: 12px;
-      margin-bottom: 14px;
+      padding: 14px;
       display: grid;
       gap: 10px;
+    }
+
+    .notify-card {
+      border: 1px solid var(--border);
+      background: #fff;
+      border-radius: 12px;
+      padding: 14px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .notify-title {
+      font-size: 0.86rem;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .notify-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .notify-actions button {
+      min-height: 42px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+    }
+
+    #notifyToggle {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    #notifyTest {
+      background: #fff;
+      color: var(--text);
+      border: 1px solid var(--border);
     }
 
     .reward-title {
@@ -228,10 +273,14 @@
       font-size: 1.05rem;
     }
 
+    .panel h2 {
+      margin-bottom: 2px;
+    }
+
     .habit-form {
       display: grid;
-      gap: 10px;
-      margin-bottom: 20px;
+      gap: 12px;
+      margin-bottom: 0;
     }
 
     .time-inputs {
@@ -240,10 +289,20 @@
       gap: 8px;
     }
 
+    .time-inputs > *,
+    .habit-config > *,
+    .frequency-config > * {
+      min-width: 0;
+    }
+
     .habit-config {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 8px;
+    }
+
+    .unit-input {
+      width: 100%;
     }
 
     .frequency-config {
@@ -276,13 +335,15 @@
       border: 1px solid var(--border);
       border-radius: 10px;
       padding: 10px 12px;
-      font-size: 0.9rem;
+      font-size: 0.96rem;
       color: var(--text);
       background: #fff;
     }
 
     input[type="text"],
-    input[type="number"] {
+    input[type="number"],
+    input[type="date"],
+    input[type="time"] {
       border: 1px solid var(--border);
       border-radius: 10px;
       padding: 10px 12px;
@@ -303,6 +364,11 @@
     .btn-primary {
       background: var(--accent);
       color: #fff;
+    }
+
+    .btn-secondary {
+      background: #e5e7eb;
+      color: #111827;
     }
 
     .habit-list {
@@ -382,11 +448,28 @@
       font-size: 0.82rem;
     }
 
+    .habit-edit {
+      background: #dbeafe;
+      color: #1d4ed8;
+      padding: 6px 8px;
+      font-size: 0.82rem;
+    }
+
+    .habit-actions {
+      display: grid;
+      gap: 6px;
+      justify-items: end;
+    }
+
     .main {
       padding: 24px;
       display: grid;
       gap: 20px;
       align-content: start;
+      min-width: 0;
+      position: relative;
+      z-index: 1;
+      overflow-x: hidden;
     }
 
     .toolbar {
@@ -399,14 +482,19 @@
 
     .tabs {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-auto-flow: column;
+      grid-auto-columns: minmax(0, 1fr);
       background: #eef2f7;
       border-radius: 12px;
       padding: 4px;
       gap: 4px;
-      width: min(420px, 100%);
+      width: min(540px, 100%);
       margin-bottom: 2px;
       align-self: start;
+    }
+
+    .event-view-tabs {
+      width: min(360px, 100%);
     }
 
     .top-row {
@@ -485,6 +573,8 @@
       border: 1px solid var(--border);
       border-radius: 12px;
       background: #fff;
+      position: relative;
+      z-index: 0;
     }
 
     table {
@@ -829,6 +919,264 @@
       padding: 2px 6px;
     }
 
+    .event-form {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .event-time-row {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 1fr;
+      gap: 8px;
+    }
+
+    .event-month-cell {
+      min-height: 110px;
+      align-content: start;
+    }
+
+    .event-month-list {
+      display: grid;
+      gap: 4px;
+      overflow: hidden;
+    }
+
+    .event-chip {
+      font-size: 0.72rem;
+      line-height: 1.25;
+      border-radius: 6px;
+      padding: 3px 6px;
+      background: #ecfeff;
+      color: #155e75;
+      border: 1px solid #bae6fd;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .event-more {
+      font-size: 0.72rem;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .event-weekly {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+      padding: 10px;
+    }
+
+    .event-week-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .event-week-col {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fafaf9;
+      padding: 8px;
+      display: grid;
+      gap: 8px;
+      align-content: start;
+      min-height: 240px;
+    }
+
+    .event-week-head {
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .event-week-date {
+      font-size: 0.75rem;
+      color: var(--muted);
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    .event-card {
+      border: 1px solid #bfdbfe;
+      border-left: 4px solid #0ea5e9;
+      border-radius: 10px;
+      background:
+        linear-gradient(180deg, rgba(239, 246, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
+      padding: 9px 10px;
+      display: grid;
+      gap: 6px;
+      box-shadow: 0 4px 14px rgba(14, 116, 144, 0.08);
+      transition: transform 0.12s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    }
+
+    .event-card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 9px 22px rgba(14, 116, 144, 0.14);
+      border-color: #7dd3fc;
+    }
+
+    .event-card-title {
+      font-size: 0.82rem;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+      color: #0f172a;
+    }
+
+    .event-card-meta {
+      font-size: 0.74rem;
+      color: #475569;
+      font-weight: 650;
+    }
+
+    .event-card-delete {
+      justify-self: start;
+      border: 1px solid #fecaca;
+      border-radius: 6px;
+      background: #fff5f5;
+      color: #b91c1c;
+      padding: 4px 8px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .event-card-edit {
+      justify-self: start;
+      border: 1px solid #bfdbfe;
+      border-radius: 6px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      padding: 4px 8px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .event-card-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 2px;
+      padding-top: 4px;
+      border-top: 1px dashed rgba(148, 163, 184, 0.45);
+    }
+
+    .event-empty {
+      color: var(--muted);
+      font-size: 0.76rem;
+      font-weight: 700;
+    }
+
+    .event-day {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .event-day-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .event-day-row {
+      display: grid;
+      grid-template-columns: 96px 1fr;
+      gap: 10px;
+      align-items: start;
+    }
+
+    .event-day-time {
+      font-size: 0.8rem;
+      font-weight: 800;
+      color: #0f172a;
+      line-height: 1.2;
+      padding-top: 8px;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .event-day-time-end {
+      display: block;
+      font-size: 0.72rem;
+      color: var(--muted);
+      font-weight: 700;
+      margin-top: 3px;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.46);
+      display: grid;
+      place-items: center;
+      z-index: 10000;
+      padding: 20px;
+    }
+
+    .modal[hidden] {
+      display: none !important;
+    }
+
+    .modal-panel {
+      width: min(720px, 100%);
+      max-height: calc(100vh - 40px);
+      overflow: auto;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: #fff;
+      box-shadow: 0 18px 42px rgba(15, 23, 42, 0.28);
+      padding: 14px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+    }
+
+    .modal-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+    }
+
+    .modal-close {
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .modal .habit-form,
+    .modal .reward-form,
+    .modal .event-form {
+      margin: 0;
+    }
+
     .monthly-stats {
       border: 1px solid var(--border);
       border-radius: 12px;
@@ -953,6 +1301,8 @@
         font-size: 0.84rem;
       }
       .month-cell { min-height: 58px; }
+      .event-week-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .notify-actions { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 540px) {
@@ -971,7 +1321,12 @@
       .week-row { grid-template-columns: 1fr; }
       .week-label { min-width: 150px; }
       table { min-width: 680px; }
+      .event-time-row { grid-template-columns: 1fr; }
+      .event-week-grid { grid-template-columns: 1fr; }
+      .event-day-row { grid-template-columns: 1fr; gap: 6px; }
+      .event-day-time { text-align: left; padding-top: 0; }
     }
+
   </style>
 </head>
 <body>
@@ -1005,53 +1360,24 @@
           <div id="streakValue" class="streak-value zero">0</div>
         </section>
         <section class="reward-wallet">
-          <div class="reward-title">Self-Reward Wallet</div>
-          <form id="rewardForm" class="reward-form" autocomplete="off">
-            <input id="rewardInput" type="text" placeholder="Reward (e.g. New headphones)" maxlength="80" required />
-            <div class="reward-form-row">
-              <input id="rewardTarget" type="number" min="1" step="1" placeholder="Target days" required />
-              <button id="rewardAddBtn" class="btn-primary" type="submit">Add</button>
-            </div>
-          </form>
+          <div class="section-head">
+            <div class="reward-title">Self-Reward Wallet</div>
+            <button id="openRewardModal" type="button" class="btn-primary">Add Reward</button>
+          </div>
           <div id="rewardList" class="reward-list"></div>
         </section>
-        <h2>Habits</h2>
-        <form id="habitForm" class="habit-form" autocomplete="off">
-          <input id="habitInput" type="text" placeholder="Add habit (e.g. Workout)" maxlength="80" required />
-          <div class="habit-config">
-            <select id="habitType" aria-label="Habit type">
-              <option value="checkbox">Checkbox</option>
-              <option value="number">Target Goal</option>
-            </select>
-            <input id="habitTarget" type="text" inputmode="decimal" placeholder="Target goal" disabled />
-          </div>
-          <div class="frequency-config">
-            <select id="habitFrequency" aria-label="Frequency">
-              <option value="daily">Daily</option>
-              <option value="weekdays">Weekdays (Mon-Fri)</option>
-              <option value="weekly">Weekly (Choose days)</option>
-            </select>
-            <div id="habitWeeklyDays" class="weekly-days" hidden>
-              <label class="weekly-day"><input type="checkbox" name="habitWeeklyDays" value="1" checked />Mon</label>
-              <label class="weekly-day"><input type="checkbox" name="habitWeeklyDays" value="2" />Tue</label>
-              <label class="weekly-day"><input type="checkbox" name="habitWeeklyDays" value="3" />Wed</label>
-              <label class="weekly-day"><input type="checkbox" name="habitWeeklyDays" value="4" />Thu</label>
-              <label class="weekly-day"><input type="checkbox" name="habitWeeklyDays" value="5" />Fri</label>
-              <label class="weekly-day"><input type="checkbox" name="habitWeeklyDays" value="6" />Sat</label>
-              <label class="weekly-day"><input type="checkbox" name="habitWeeklyDays" value="0" />Sun</label>
-            </div>
-          </div>
-          <div class="time-inputs">
-            <select id="habitHour" aria-label="Hour"></select>
-            <select id="habitMinute" aria-label="Minute"></select>
-            <select id="habitAmPm" aria-label="AM or PM">
-              <option value="AM">AM</option>
-              <option value="PM">PM</option>
-            </select>
-          </div>
-          <button type="submit" class="btn-primary">Add Habit</button>
-        </form>
+        <div class="section-head">
+          <h2>Habits</h2>
+          <button id="openHabitModal" type="button" class="btn-primary">Add Habit</button>
+        </div>
         <ul id="habitList" class="habit-list"></ul>
+        <section class="notify-card">
+          <div class="notify-title">Notifications</div>
+          <div class="notify-actions">
+            <button id="notifyToggle" type="button">Enable Notifications</button>
+            <button id="notifyTest" type="button">Test Notification</button>
+          </div>
+        </section>
       </aside>
 
       <section class="main">
@@ -1060,10 +1386,9 @@
             <button id="tabDaily" type="button" class="tab-btn active">Daily</button>
             <button id="tabWeekly" type="button" class="tab-btn">Weekly</button>
             <button id="tabMonthly" type="button" class="tab-btn">Monthly</button>
+            <button id="tabEvents" type="button" class="tab-btn">Events</button>
           </div>
           <div class="top-actions">
-            <button id="notifyToggle" type="button">Enable Notifications</button>
-            <button id="notifyTest" type="button">Test Notification</button>
             <button id="importJson" type="button">Import JSON</button>
             <button id="exportJson" type="button">Export JSON</button>
           </div>
@@ -1157,9 +1482,131 @@
             <div id="monthlyRows"></div>
           </section>
         </div>
+
+        <div id="eventsView" class="view-pane" hidden>
+          <div class="toolbar">
+            <h2>Events Calendar</h2>
+            <div class="top-actions">
+              <button id="eventAddToggle" type="button" class="btn-primary">Add Event</button>
+            </div>
+          </div>
+
+          <div class="toolbar">
+            <div class="tabs event-view-tabs">
+              <button id="eventModeMonthly" type="button" class="tab-btn active">Monthly</button>
+              <button id="eventModeWeekly" type="button" class="tab-btn">Weekly</button>
+              <button id="eventModeDay" type="button" class="tab-btn">Day</button>
+            </div>
+            <div class="week-nav">
+              <button id="eventPrev" type="button" aria-label="Previous period">&lt;</button>
+              <div id="eventRangeLabel" class="week-label"></div>
+              <button id="eventNext" type="button" aria-label="Next period">&gt;</button>
+              <button id="eventToday" type="button">Today</button>
+            </div>
+          </div>
+
+          <section id="eventMonthlyWrap" class="monthly-grid-wrap">
+            <div class="month-weekdays">
+              <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div>
+            </div>
+            <div id="eventMonthCells" class="month-cells"></div>
+          </section>
+
+          <section id="eventWeeklyWrap" class="event-weekly is-hidden">
+            <div id="eventWeekGrid" class="event-week-grid"></div>
+          </section>
+
+          <section id="eventDayWrap" class="event-day is-hidden">
+            <div id="eventDayBoard" class="event-day-list"></div>
+          </section>
+        </div>
       </section>
     </div>
   </main>
+  <div id="rewardModal" class="modal" hidden>
+    <div class="modal-panel">
+      <div class="modal-head">
+        <div class="modal-title">Add Reward</div>
+        <button id="closeRewardModal" type="button" class="modal-close">Close</button>
+      </div>
+      <form id="rewardForm" class="reward-form" autocomplete="off">
+        <input id="rewardInput" type="text" placeholder="Reward (e.g. New headphones)" maxlength="80" required />
+        <div class="reward-form-row">
+          <input id="rewardTarget" type="number" min="1" step="1" placeholder="Target days" required />
+          <button id="rewardAddBtn" class="btn-primary" type="submit">Add</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="habitModal" class="modal" hidden>
+    <div class="modal-panel">
+      <div class="modal-head">
+        <div id="habitModalTitle" class="modal-title">Add Habit</div>
+        <button id="closeHabitModal" type="button" class="modal-close">Close</button>
+      </div>
+      <form id="habitForm" class="habit-form" autocomplete="off">
+        <input id="habitInput" type="text" placeholder="Add habit (e.g. Workout)" maxlength="80" required />
+        <div class="habit-config">
+          <select id="habitType" aria-label="Habit type">
+            <option value="checkbox">Checkbox</option>
+            <option value="number">Target Goal</option>
+          </select>
+          <input id="habitTarget" type="text" inputmode="decimal" placeholder="Target goal" disabled />
+        </div>
+        <div class="frequency-config">
+          <select id="habitFrequency" aria-label="Frequency">
+            <option value="daily">Daily</option>
+            <option value="weekdays">Weekdays (Mon-Fri)</option>
+            <option value="weekly">Weekly (Choose days)</option>
+          </select>
+          <div id="habitWeeklyDays" class="weekly-days" hidden>
+            <label class="weekly-day"><input type="checkbox" name="habitWeeklyDays" value="1" checked />Mon</label>
+            <label class="weekly-day"><input type="checkbox" name="habitWeeklyDays" value="2" />Tue</label>
+            <label class="weekly-day"><input type="checkbox" name="habitWeeklyDays" value="3" />Wed</label>
+            <label class="weekly-day"><input type="checkbox" name="habitWeeklyDays" value="4" />Thu</label>
+            <label class="weekly-day"><input type="checkbox" name="habitWeeklyDays" value="5" />Fri</label>
+            <label class="weekly-day"><input type="checkbox" name="habitWeeklyDays" value="6" />Sat</label>
+            <label class="weekly-day"><input type="checkbox" name="habitWeeklyDays" value="0" />Sun</label>
+          </div>
+        </div>
+        <div class="time-inputs">
+          <select id="habitHour" aria-label="Hour"></select>
+          <select id="habitMinute" aria-label="Minute"></select>
+          <select id="habitAmPm" aria-label="AM or PM">
+            <option value="AM">AM</option>
+            <option value="PM">PM</option>
+          </select>
+        </div>
+        <div class="top-actions">
+          <button id="habitSubmitBtn" type="submit" class="btn-primary">Add Habit</button>
+          <button id="habitCancelBtn" type="button" class="btn-secondary is-hidden">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="eventModal" class="modal" hidden>
+    <div class="modal-panel">
+      <div class="modal-head">
+        <div id="eventModalTitle" class="modal-title">Add Event</div>
+        <button id="closeEventModal" type="button" class="modal-close">Close</button>
+      </div>
+      <form id="eventForm" class="event-form" autocomplete="off">
+        <input id="eventTitle" type="text" placeholder="Event title (e.g. Doctor appointment)" maxlength="100" required />
+        <div class="event-time-row">
+          <input id="eventDate" type="date" required />
+          <input id="eventStartTime" type="time" required />
+          <input id="eventEndTime" type="time" />
+        </div>
+        <input id="eventNotes" type="text" placeholder="Notes (optional)" maxlength="160" />
+        <div class="top-actions">
+          <button id="eventSubmitBtn" type="submit" class="btn-primary">Add Event</button>
+          <button id="eventCancelBtn" type="button" class="btn-secondary">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
   <div id="toastWrap" class="toast-wrap"></div>
   <div id="confettiLayer" class="confetti-layer"></div>
 
@@ -1167,6 +1614,7 @@
     const STORAGE_KEY = "habitTracker.weekly.v1";
     const NOTIFY_STORAGE_KEY = "habitTracker.notifications.v1";
     const FALLBACK_STORAGE_PREFIX = "session:";
+    const DEFAULT_TARGET_UNITS = ["steps", "cups of water", "minutes", "km", "pages", "reps", "calories", "units"];
 
     const habitForm = document.getElementById("habitForm");
     const habitInput = document.getElementById("habitInput");
@@ -1174,8 +1622,19 @@
     const rewardInput = document.getElementById("rewardInput");
     const rewardTarget = document.getElementById("rewardTarget");
     const rewardList = document.getElementById("rewardList");
+    const openRewardModalBtn = document.getElementById("openRewardModal");
+    const rewardModal = document.getElementById("rewardModal");
+    const closeRewardModalBtn = document.getElementById("closeRewardModal");
+    const openHabitModalBtn = document.getElementById("openHabitModal");
+    const habitModal = document.getElementById("habitModal");
+    const closeHabitModalBtn = document.getElementById("closeHabitModal");
+    const habitModalTitle = document.getElementById("habitModalTitle");
+    const habitSubmitBtn = document.getElementById("habitSubmitBtn");
+    const habitCancelBtn = document.getElementById("habitCancelBtn");
     const habitType = document.getElementById("habitType");
     const habitTarget = document.getElementById("habitTarget");
+    let habitUnit = null;
+    let unitOptionsList = null;
     const habitFrequency = document.getElementById("habitFrequency");
     const habitWeeklyDays = document.getElementById("habitWeeklyDays");
     const habitWeeklyDayChecks = Array.from(document.querySelectorAll('input[name="habitWeeklyDays"]'));
@@ -1188,6 +1647,7 @@
     const tabWeekly = document.getElementById("tabWeekly");
     const tabDaily = document.getElementById("tabDaily");
     const tabMonthly = document.getElementById("tabMonthly");
+    const tabEvents = document.getElementById("tabEvents");
     const prevWeekBtn = document.getElementById("prevWeek");
     const nextWeekBtn = document.getElementById("nextWeek");
     const todayWeekBtn = document.getElementById("todayWeek");
@@ -1209,6 +1669,7 @@
     const weeklyView = document.getElementById("weeklyView");
     const dailyView = document.getElementById("dailyView");
     const monthlyView = document.getElementById("monthlyView");
+    const eventsView = document.getElementById("eventsView");
     const tableWrap = document.getElementById("tableWrap");
     const tableHeadRow = document.getElementById("tableHeadRow");
     const tableBody = document.getElementById("tableBody");
@@ -1219,6 +1680,31 @@
     const dailySummaryFill = document.getElementById("dailySummaryFill");
     const monthCells = document.getElementById("monthCells");
     const monthlyRows = document.getElementById("monthlyRows");
+    const eventAddToggle = document.getElementById("eventAddToggle");
+    const eventForm = document.getElementById("eventForm");
+    const eventTitle = document.getElementById("eventTitle");
+    const eventDate = document.getElementById("eventDate");
+    const eventStartTime = document.getElementById("eventStartTime");
+    const eventEndTime = document.getElementById("eventEndTime");
+    const eventNotes = document.getElementById("eventNotes");
+    const eventSubmitBtn = document.getElementById("eventSubmitBtn");
+    const eventCancelBtn = document.getElementById("eventCancelBtn");
+    const eventModal = document.getElementById("eventModal");
+    const eventModalTitle = document.getElementById("eventModalTitle");
+    const closeEventModalBtn = document.getElementById("closeEventModal");
+    const eventModeMonthlyBtn = document.getElementById("eventModeMonthly");
+    const eventModeWeeklyBtn = document.getElementById("eventModeWeekly");
+    const eventModeDayBtn = document.getElementById("eventModeDay");
+    const eventPrevBtn = document.getElementById("eventPrev");
+    const eventNextBtn = document.getElementById("eventNext");
+    const eventTodayBtn = document.getElementById("eventToday");
+    const eventRangeLabel = document.getElementById("eventRangeLabel");
+    const eventMonthlyWrap = document.getElementById("eventMonthlyWrap");
+    const eventWeeklyWrap = document.getElementById("eventWeeklyWrap");
+    const eventDayWrap = document.getElementById("eventDayWrap");
+    const eventMonthCells = document.getElementById("eventMonthCells");
+    const eventWeekGrid = document.getElementById("eventWeekGrid");
+    const eventDayBoard = document.getElementById("eventDayBoard");
     const toastWrap = document.getElementById("toastWrap");
     const confettiLayer = document.getElementById("confettiLayer");
 
@@ -1227,17 +1713,72 @@
     let weekOffset = 0;
     let dayOffset = 0;
     let monthOffset = 0;
+    let eventMonthOffset = 0;
+    let eventWeekOffset = 0;
+    let eventDayOffset = 0;
+    let eventMode = "monthly";
+    let editingHabitId = null;
+    let editingEventId = null;
     let activeTab = "daily";
 
     initTimePicker();
-    updateTargetInputState();
-    updateFrequencyInputState();
+    initTargetUnitInput();
+    resetHabitEditor();
     tabDaily.disabled = false;
     tabWeekly.disabled = false;
     tabMonthly.disabled = false;
+    tabEvents.disabled = false;
+    setEventFormDefaults();
     updateNotifyButton();
     startNotificationLoop();
     render();
+
+    openRewardModalBtn.addEventListener("click", () => {
+      openModal(rewardModal);
+      rewardInput.focus();
+    });
+
+    closeRewardModalBtn.addEventListener("click", () => {
+      closeModal(rewardModal);
+    });
+
+    openHabitModalBtn.addEventListener("click", () => {
+      resetHabitEditor();
+      openModal(habitModal);
+      habitInput.focus();
+    });
+
+    closeHabitModalBtn.addEventListener("click", () => {
+      resetHabitEditor();
+    });
+
+    closeEventModalBtn.addEventListener("click", () => {
+      resetEventEditor();
+    });
+
+    for (const modal of [rewardModal, habitModal, eventModal]) {
+      modal.addEventListener("click", (event) => {
+        if (event.target !== modal) return;
+        if (modal === rewardModal) closeModal(rewardModal);
+        if (modal === habitModal) resetHabitEditor();
+        if (modal === eventModal) resetEventEditor();
+      });
+    }
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape") return;
+      if (!eventModal.hidden) {
+        resetEventEditor();
+        return;
+      }
+      if (!habitModal.hidden) {
+        resetHabitEditor();
+        return;
+      }
+      if (!rewardModal.hidden) {
+        closeModal(rewardModal);
+      }
+    });
 
     habitForm.addEventListener("submit", (event) => {
       event.preventDefault();
@@ -1249,45 +1790,71 @@
         }
         const type = habitType.value;
         const targetGoal = type === "number" ? toPositiveNumber(habitTarget.value) : null;
+        const targetUnit = type === "number" ? normalizeTargetUnit(habitUnit ? habitUnit.value : "") : "";
         if (type === "number" && targetGoal === null) {
           showToast("Could not add task.\nReason: target goal must be a positive number.");
           return;
         }
+        if (type === "number" && !targetUnit) {
+          showToast("Could not add task.\nReason: target unit is required.");
+          return;
+        }
         const frequency = getSelectedFrequency();
-        const newHabit = {
-          id: makeId(),
-          name,
-          type,
-          targetGoal,
-          frequency,
-          timeOfDay: getSelectedTimeOfDay(),
-          entries: {}
-        };
-        state.habits.push(newHabit);
+        const previousTargetUnits = Array.isArray(state.targetUnits) ? [...state.targetUnits] : [];
+        const timeOfDay = getSelectedTimeOfDay();
+        const previousHabits = state.habits.map((habit) => ({ ...habit }));
 
+        if (editingHabitId) {
+          const habit = state.habits.find((item) => item.id === editingHabitId);
+          if (!habit) {
+            showToast("Could not update task.\nReason: habit no longer exists.");
+            return;
+          }
+          habit.name = name;
+          habit.type = type;
+          habit.targetGoal = targetGoal;
+          habit.targetUnit = targetUnit;
+          habit.frequency = frequency;
+          habit.timeOfDay = timeOfDay;
+        } else {
+          const newHabit = {
+            id: makeId(),
+            name,
+            type,
+            targetGoal,
+            targetUnit,
+            frequency,
+            timeOfDay,
+            entries: {}
+          };
+          state.habits.push(newHabit);
+        }
+
+        registerTargetUnit(targetUnit);
         const saveResult = saveState();
         if (!saveResult || !saveResult.ok) {
-          state.habits = state.habits.filter((habit) => habit.id !== newHabit.id);
+          state.habits = previousHabits;
+          state.targetUnits = previousTargetUnits;
+          refreshTargetUnitOptions();
           const error = saveResult && saveResult.error ? saveResult.error : new Error("Unknown save failure.");
-          showToast(`Could not add task.\n${formatError(error)}`);
+          showToast(`Could not ${editingHabitId ? "update" : "add"} task.\n${formatError(error)}`);
           return;
         }
 
-        habitInput.value = "";
-        habitType.value = "checkbox";
-        habitTarget.value = "";
-        habitFrequency.value = "daily";
-        resetWeeklyDayChecks();
-        updateTargetInputState();
-        updateFrequencyInputState();
+        resetHabitEditor();
+        refreshTargetUnitOptions();
         render();
       } catch (error) {
-        showToast(`Could not add task.\n${formatError(error)}`);
+        showToast(`Could not ${editingHabitId ? "update" : "add"} task.\n${formatError(error)}`);
       }
     });
 
     habitType.addEventListener("change", () => {
       updateTargetInputState();
+    });
+
+    habitCancelBtn.addEventListener("click", () => {
+      resetHabitEditor();
     });
 
     rewardForm.addEventListener("submit", (event) => {
@@ -1319,6 +1886,7 @@
 
       rewardInput.value = "";
       rewardTarget.value = "";
+      closeModal(rewardModal);
       renderRewardWallet();
     });
 
@@ -1371,6 +1939,11 @@
       renderActiveView();
     });
 
+    tabEvents.addEventListener("click", () => {
+      activeTab = "events";
+      renderActiveView();
+    });
+
     prevMonthBtn.addEventListener("click", () => {
       monthOffset -= 1;
       renderActiveView();
@@ -1384,6 +1957,71 @@
     todayMonthBtn.addEventListener("click", () => {
       monthOffset = 0;
       renderActiveView();
+    });
+
+    eventAddToggle.addEventListener("click", () => {
+      editingEventId = null;
+      eventSubmitBtn.textContent = "Add Event";
+      eventModalTitle.textContent = "Add Event";
+      setEventFormDefaults();
+      if (eventMode === "day") {
+        eventDate.value = toDateKey(getDateWithOffset(eventDayOffset));
+      }
+      openModal(eventModal);
+      eventTitle.focus();
+    });
+
+    eventCancelBtn.addEventListener("click", () => {
+      resetEventEditor();
+    });
+
+    eventForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      createEventFromForm();
+    });
+
+    eventModeMonthlyBtn.addEventListener("click", () => {
+      eventMode = "monthly";
+      renderEventsView();
+    });
+
+    eventModeWeeklyBtn.addEventListener("click", () => {
+      eventMode = "weekly";
+      renderEventsView();
+    });
+
+    eventModeDayBtn.addEventListener("click", () => {
+      eventMode = "day";
+      renderEventsView();
+    });
+
+    eventPrevBtn.addEventListener("click", () => {
+      if (eventMode === "monthly") {
+        eventMonthOffset -= 1;
+      } else if (eventMode === "weekly") {
+        eventWeekOffset -= 1;
+      } else {
+        eventDayOffset -= 1;
+      }
+      renderEventsView();
+    });
+
+    eventNextBtn.addEventListener("click", () => {
+      if (eventMode === "monthly") {
+        eventMonthOffset += 1;
+      } else if (eventMode === "weekly") {
+        eventWeekOffset += 1;
+      } else {
+        eventDayOffset += 1;
+      }
+      renderEventsView();
+    });
+
+    eventTodayBtn.addEventListener("click", () => {
+      eventMonthOffset = 0;
+      eventWeekOffset = 0;
+      eventDayOffset = 0;
+      renderEventsView();
     });
 
     exportJsonBtn.addEventListener("click", () => {
@@ -1422,7 +2060,7 @@
     function loadState() {
       try {
         const raw = readStorage(STORAGE_KEY);
-        if (!raw) return { habits: [], rewards: [] };
+        if (!raw) return { habits: [], rewards: [], targetUnits: [...DEFAULT_TARGET_UNITS], events: [] };
 
         const parsed = JSON.parse(raw);
         const habits = Array.isArray(parsed.habits)
@@ -1431,10 +2069,12 @@
               .map((h) => normalizeHabit(h))
           : [];
         const rewards = normalizeRewards(parsed.rewards);
+        const targetUnits = normalizeTargetUnits(parsed.targetUnits, habits);
+        const events = normalizeEvents(parsed.events);
 
-        return { habits, rewards };
+        return { habits, rewards, targetUnits, events };
       } catch {
-        return { habits: [], rewards: [] };
+        return { habits: [], rewards: [], targetUnits: [...DEFAULT_TARGET_UNITS], events: [] };
       }
     }
 
@@ -1452,6 +2092,60 @@
         });
     }
 
+    function normalizeTargetUnits(units, habits = []) {
+      const all = new Set(DEFAULT_TARGET_UNITS.map((unit) => normalizeTargetUnit(unit)).filter(Boolean));
+
+      if (Array.isArray(units)) {
+        for (const unit of units) {
+          const normalized = normalizeTargetUnit(unit);
+          if (normalized) all.add(normalized);
+        }
+      }
+
+      if (Array.isArray(habits)) {
+        for (const habit of habits) {
+          if (normalizeHabitType(habit.type) !== "number") continue;
+          const normalized = normalizeTargetUnit(habit.targetUnit);
+          if (normalized) all.add(normalized);
+        }
+      }
+
+      return Array.from(all);
+    }
+
+    function normalizeEvents(events) {
+      if (!Array.isArray(events)) return [];
+      return events
+        .filter((event) => event && typeof event.id === "string")
+        .map((event) => {
+          const title = typeof event.title === "string" ? event.title.trim() : "";
+          const date = normalizeEventDate(event.date);
+          if (!title || !date) return null;
+          const startTime = normalizeEventTime(event.startTime);
+          const endTime = normalizeEventTime(event.endTime);
+          return {
+            id: event.id,
+            title,
+            date,
+            startTime: startTime || "09:00",
+            endTime: endTime || "",
+            notes: typeof event.notes === "string" ? event.notes.trim() : ""
+          };
+        })
+        .filter(Boolean)
+        .sort(compareEvents);
+    }
+
+    function normalizeEventDate(value) {
+      if (typeof value !== "string") return "";
+      return /^\d{4}-\d{2}-\d{2}$/.test(value.trim()) ? value.trim() : "";
+    }
+
+    function normalizeEventTime(value) {
+      if (typeof value !== "string") return "";
+      return /^([01]\d|2[0-3]):[0-5]\d$/.test(value.trim()) ? value.trim() : "";
+    }
+
     function normalizeHabit(habit) {
       const entries = normalizeEntries(habit.entries);
       const legacyChecks = normalizeChecks(habit.checks);
@@ -1461,6 +2155,7 @@
       }
       const normalizedType = normalizeHabitType(habit.type);
       const normalizedTarget = normalizeTargetGoal(habit.targetGoal, normalizedType);
+      const normalizedUnit = normalizeTargetUnit(habit.targetUnit);
       const normalizedFrequency = normalizeFrequency(habit.frequency);
 
       return {
@@ -1468,6 +2163,7 @@
         name: habit.name,
         type: normalizedType,
         targetGoal: normalizedTarget,
+        targetUnit: normalizedUnit,
         frequency: normalizedFrequency,
         timeOfDay: normalizeTimeOfDay(habit.timeOfDay),
         entries
@@ -1482,6 +2178,11 @@
       if (type !== "number") return null;
       const parsed = toPositiveNumber(value);
       return parsed === null ? 1 : parsed;
+    }
+
+    function normalizeTargetUnit(value) {
+      if (typeof value !== "string") return "";
+      return value.trim();
     }
 
     function normalizeFrequency(value) {
@@ -1565,11 +2266,115 @@
       return `${habitHour.value}:${habitMinute.value} ${habitAmPm.value}`;
     }
 
+    function applyTimeOfDayToPicker(timeOfDay) {
+      const match = /^(0[1-9]|1[0-2]):([0-5][0-9]) (AM|PM)$/.exec(String(timeOfDay || ""));
+      if (!match) return;
+      habitHour.value = match[1];
+      habitMinute.value = match[2];
+      habitAmPm.value = match[3];
+    }
+
+    function resetHabitEditor() {
+      editingHabitId = null;
+      habitInput.value = "";
+      habitType.value = "checkbox";
+      habitTarget.value = "";
+      if (habitUnit) habitUnit.value = "";
+      habitFrequency.value = "daily";
+      resetWeeklyDayChecks();
+      applyTimeOfDayToPicker("07:00 AM");
+      updateTargetInputState();
+      updateFrequencyInputState();
+      habitSubmitBtn.textContent = "Add Habit";
+      habitModalTitle.textContent = "Add Habit";
+      habitCancelBtn.classList.add("is-hidden");
+      closeModal(habitModal);
+    }
+
+    function startEditHabit(habitId) {
+      const habit = state.habits.find((item) => item.id === habitId);
+      if (!habit) return;
+      editingHabitId = habit.id;
+      habitInput.value = habit.name;
+      habitType.value = getEffectiveHabitType(habit);
+      habitTarget.value = habit.type === "number" ? formatNumberWithCommas(habit.targetGoal) : "";
+      if (habitUnit) habitUnit.value = normalizeTargetUnit(habit.targetUnit);
+      applyTimeOfDayToPicker(habit.timeOfDay);
+
+      const frequency = normalizeFrequency(habit.frequency);
+      habitFrequency.value = frequency.mode;
+      for (const checkbox of habitWeeklyDayChecks) {
+        checkbox.checked = frequency.mode === "weekly"
+          ? frequency.weekdays.includes(normalizeWeekday(checkbox.value))
+          : checkbox.value === "1";
+      }
+      updateTargetInputState();
+      updateFrequencyInputState();
+      habitSubmitBtn.textContent = "Update Habit";
+      habitModalTitle.textContent = "Edit Habit";
+      habitCancelBtn.classList.remove("is-hidden");
+      openModal(habitModal);
+      habitInput.focus();
+    }
+
+    function initTargetUnitInput() {
+      const config = habitForm.querySelector(".habit-config");
+      if (!config) return;
+
+      const unitInput = document.createElement("input");
+      unitInput.id = "habitUnit";
+      unitInput.className = "unit-input";
+      unitInput.type = "text";
+      unitInput.setAttribute("list", "unitOptions");
+      unitInput.placeholder = "Target unit (e.g. steps)";
+      unitInput.disabled = true;
+
+      const datalist = document.createElement("datalist");
+      datalist.id = "unitOptions";
+      unitOptionsList = datalist;
+
+      config.insertAdjacentElement("afterend", unitInput);
+      unitInput.insertAdjacentElement("afterend", datalist);
+      habitUnit = unitInput;
+      refreshTargetUnitOptions();
+
+      habitUnit.addEventListener("blur", () => {
+        habitUnit.value = normalizeTargetUnit(habitUnit.value);
+      });
+    }
+
+    function refreshTargetUnitOptions() {
+      if (!unitOptionsList) return;
+      unitOptionsList.innerHTML = "";
+      const units = normalizeTargetUnits(state.targetUnits, state.habits).sort((a, b) => a.localeCompare(b));
+      for (const unitValue of units) {
+        const option = document.createElement("option");
+        option.value = unitValue;
+        unitOptionsList.appendChild(option);
+      }
+    }
+
+    function registerTargetUnit(value) {
+      const normalized = normalizeTargetUnit(value);
+      if (!normalized) return;
+      const units = Array.isArray(state.targetUnits) ? state.targetUnits : [];
+      if (units.includes(normalized)) return;
+      state.targetUnits = [...units, normalized];
+      refreshTargetUnitOptions();
+    }
+
     function updateTargetInputState() {
       const isNumber = habitType.value === "number";
       habitTarget.disabled = !isNumber;
       habitTarget.required = isNumber;
-      if (!isNumber) habitTarget.value = "";
+      if (habitUnit) {
+        habitUnit.disabled = !isNumber;
+        habitUnit.required = isNumber;
+      }
+      if (!isNumber) {
+        habitTarget.value = "";
+        if (habitUnit) habitUnit.value = "";
+      }
     }
 
     function updateFrequencyInputState() {
@@ -1754,7 +2559,7 @@
         }
 
         const body = habit.type === "number"
-          ? `Target ${formatNumberWithCommas(habit.targetGoal)} pending for today (${habit.timeOfDay}).`
+          ? `Target ${formatNumberWithCommas(habit.targetGoal)} ${normalizeTargetUnit(habit.targetUnit) || "units"} pending for today (${habit.timeOfDay}).`
           : `Task pending for today (${habit.timeOfDay}).`;
 
         try {
@@ -1786,7 +2591,10 @@
       const payload = {
         version: 1,
         exportedAt: new Date().toISOString(),
-        habits: state.habits
+        habits: state.habits,
+        rewards: state.rewards,
+        targetUnits: normalizeTargetUnits(state.targetUnits, state.habits),
+        events: normalizeEvents(state.events)
       };
 
       const blob = new Blob([JSON.stringify(payload, null, 2)], {
@@ -1821,8 +2629,13 @@
           .map((h) => normalizeHabit(h));
 
         const rewards = normalizeRewards(parsed.rewards);
-        state = { habits, rewards };
+        const targetUnits = normalizeTargetUnits(parsed.targetUnits, habits);
+        const events = normalizeEvents(parsed.events);
+        state = { habits, rewards, targetUnits, events };
         saveState();
+        resetHabitEditor();
+        resetEventEditor();
+        refreshTargetUnitOptions();
         render();
         alert(`Imported ${habits.length} habit(s).`);
       } catch {
@@ -1839,7 +2652,11 @@
 
     function deleteHabit(id) {
       state.habits = state.habits.filter((habit) => habit.id !== id);
+      if (editingHabitId === id) {
+        resetHabitEditor();
+      }
       saveState();
+      refreshTargetUnitOptions();
       render();
     }
 
@@ -1909,15 +2726,23 @@
       const isWeekly = activeTab === "weekly";
       const isDaily = activeTab === "daily";
       const isMonthly = activeTab === "monthly";
+      const isEvents = activeTab === "events";
 
       tabWeekly.classList.toggle("active", isWeekly);
       tabDaily.classList.toggle("active", isDaily);
       tabMonthly.classList.toggle("active", isMonthly);
+      tabEvents.classList.toggle("active", isEvents);
 
-      setVisible(emptyState, !hasHabits);
+      setVisible(emptyState, !hasHabits && !isEvents);
       setVisible(weeklyView, hasHabits && isWeekly);
       setVisible(dailyView, hasHabits && isDaily);
       setVisible(monthlyView, hasHabits && isMonthly);
+      setVisible(eventsView, isEvents);
+
+      if (isEvents) {
+        renderEventsView();
+        return;
+      }
 
       if (!hasHabits) return;
 
@@ -1933,6 +2758,16 @@
     function setVisible(element, visible) {
       element.hidden = !visible;
       element.classList.toggle("is-hidden", !visible);
+    }
+
+    function openModal(modal) {
+      if (!modal) return;
+      modal.hidden = false;
+    }
+
+    function closeModal(modal) {
+      if (!modal) return;
+      modal.hidden = true;
     }
 
     function renderHabitList() {
@@ -1961,11 +2796,21 @@
         const meta = document.createElement("div");
         meta.className = "habit-meta";
         const effectiveType = getEffectiveHabitType(habit);
-        const displayTarget = effectiveType === "number" ? `Target: ${formatNumberWithCommas(habit.targetGoal)} | ` : "";
+        const unitLabel = normalizeTargetUnit(habit.targetUnit) || "units";
+        const displayTarget = effectiveType === "number" ? `Target: ${formatNumberWithCommas(habit.targetGoal)} ${unitLabel} | ` : "";
         meta.textContent = `${displayTarget}${formatFrequency(habit.frequency)} | Time: ${habit.timeOfDay}`;
 
         const nameWrap = document.createElement("div");
         nameWrap.append(nameRow, meta);
+
+        const actions = document.createElement("div");
+        actions.className = "habit-actions";
+
+        const editBtn = document.createElement("button");
+        editBtn.type = "button";
+        editBtn.className = "habit-edit";
+        editBtn.textContent = "Edit";
+        editBtn.addEventListener("click", () => startEditHabit(habit.id));
 
         const delBtn = document.createElement("button");
         delBtn.type = "button";
@@ -1973,7 +2818,8 @@
         delBtn.textContent = "Delete";
         delBtn.addEventListener("click", () => deleteHabit(habit.id));
 
-        item.append(nameWrap, delBtn);
+        actions.append(editBtn, delBtn);
+        item.append(nameWrap, actions);
         habitList.appendChild(item);
       }
     }
@@ -2073,7 +2919,8 @@
 
         const nameTd = document.createElement("td");
         const typeLabel = effectiveType === "number" ? "Target Goal" : "Checkbox";
-        const targetText = effectiveType === "number" ? ` | Target: ${formatNumberWithCommas(habit.targetGoal)}` : "";
+        const unitLabel = normalizeTargetUnit(habit.targetUnit) || "units";
+        const targetText = effectiveType === "number" ? ` | Target: ${formatNumberWithCommas(habit.targetGoal)} ${unitLabel}` : "";
         nameTd.innerHTML = `<strong>${escapeHtml(habit.name)}</strong><div class="habit-meta">${escapeHtml(typeLabel + targetText)} | ${escapeHtml(formatFrequency(habit.frequency))} | Time: ${escapeHtml(habit.timeOfDay)}</div>`;
         tr.appendChild(nameTd);
 
@@ -2107,7 +2954,7 @@
             valueInput.type = "text";
             valueInput.inputMode = "decimal";
             valueInput.className = "cell-value number-only";
-            valueInput.placeholder = "Count";
+            valueInput.placeholder = normalizeTargetUnit(habit.targetUnit) || "Count";
             valueInput.defaultValue = formatNumberWithCommas(entry.value);
             valueInput.addEventListener("blur", (event) => {
               updateHabitValue(habit.id, dateKey, event.target.value);
@@ -2198,8 +3045,9 @@
 
         const meta = document.createElement("div");
         meta.className = "daily-meta";
+        const unitLabel = normalizeTargetUnit(habit.targetUnit) || "units";
         meta.textContent = effectiveType === "number"
-          ? `Target: ${formatNumberWithCommas(habit.targetGoal)} | ${formatFrequency(habit.frequency)} | Time: ${habit.timeOfDay}`
+          ? `Target: ${formatNumberWithCommas(habit.targetGoal)} ${unitLabel} | ${formatFrequency(habit.frequency)} | Time: ${habit.timeOfDay}`
           : `Checkbox | ${formatFrequency(habit.frequency)} | Time: ${habit.timeOfDay}`;
 
         left.append(name, meta);
@@ -2231,7 +3079,7 @@
           valueInput.type = "text";
           valueInput.inputMode = "decimal";
           valueInput.className = "daily-value";
-          valueInput.placeholder = `Enter count (Target ${formatNumberWithCommas(habit.targetGoal)})`;
+          valueInput.placeholder = `Enter ${unitLabel} (Target ${formatNumberWithCommas(habit.targetGoal)} ${unitLabel})`;
           valueInput.defaultValue = formatNumberWithCommas(entry.value);
           valueInput.addEventListener("blur", (event) => {
             updateHabitValue(habit.id, dayKey, event.target.value);
@@ -2328,6 +3176,312 @@
         row.append(label, track, stat);
         monthlyRows.appendChild(row);
       }
+    }
+
+    function setEventFormDefaults() {
+      eventTitle.value = "";
+      eventNotes.value = "";
+      eventDate.value = toDateKey(new Date());
+      eventStartTime.value = "09:00";
+      eventEndTime.value = "";
+    }
+
+    function resetEventEditor() {
+      editingEventId = null;
+      setEventFormDefaults();
+      eventSubmitBtn.textContent = "Add Event";
+      eventModalTitle.textContent = "Add Event";
+      closeModal(eventModal);
+    }
+
+    function startEditEvent(eventId) {
+      const eventItem = (state.events || []).find((event) => event.id === eventId);
+      if (!eventItem) return;
+      editingEventId = eventItem.id;
+      eventTitle.value = eventItem.title;
+      eventDate.value = eventItem.date;
+      eventStartTime.value = eventItem.startTime;
+      eventEndTime.value = eventItem.endTime || "";
+      eventNotes.value = eventItem.notes || "";
+      eventSubmitBtn.textContent = "Update Event";
+      eventModalTitle.textContent = "Edit Event";
+      openModal(eventModal);
+      eventTitle.focus();
+    }
+
+    function createEventFromForm() {
+      const title = eventTitle.value.trim();
+      const date = normalizeEventDate(eventDate.value);
+      const startTime = normalizeEventTime(eventStartTime.value);
+      const endTime = normalizeEventTime(eventEndTime.value);
+      const notes = eventNotes.value.trim();
+
+      if (!title || !date || !startTime) {
+        showToast("Could not add event.\nReason: title, date and start time are required.");
+        return;
+      }
+
+      if (endTime && toEventMinutes(endTime) <= toEventMinutes(startTime)) {
+        showToast("Could not add event.\nReason: end time must be after start time.");
+        return;
+      }
+
+      const eventItem = {
+        id: editingEventId || makeId(),
+        title,
+        date,
+        startTime,
+        endTime,
+        notes
+      };
+      const currentEvents = Array.isArray(state.events) ? state.events : [];
+      const previousEvents = currentEvents.map((event) => ({ ...event }));
+      const nextEvents = editingEventId
+        ? currentEvents.map((event) => event.id === editingEventId ? { ...event, ...eventItem } : event)
+        : [...currentEvents, eventItem];
+      state.events = normalizeEvents(nextEvents);
+      const saveResult = saveState();
+      if (!saveResult || !saveResult.ok) {
+        state.events = previousEvents;
+        const error = saveResult && saveResult.error ? saveResult.error : new Error("Unknown save failure.");
+        showToast(`Could not ${editingEventId ? "update" : "add"} event.\n${formatError(error)}`);
+        return;
+      }
+
+      resetEventEditor();
+      renderEventsView();
+    }
+
+    function deleteEvent(id) {
+      state.events = (state.events || []).filter((event) => event.id !== id);
+      if (editingEventId === id) {
+        resetEventEditor();
+      }
+      saveState();
+      renderEventsView();
+    }
+
+    function renderEventsView() {
+      eventModeMonthlyBtn.classList.toggle("active", eventMode === "monthly");
+      eventModeWeeklyBtn.classList.toggle("active", eventMode === "weekly");
+      eventModeDayBtn.classList.toggle("active", eventMode === "day");
+      setVisible(eventMonthlyWrap, eventMode === "monthly");
+      setVisible(eventWeeklyWrap, eventMode === "weekly");
+      setVisible(eventDayWrap, eventMode === "day");
+
+      if (eventMode === "monthly") {
+        const monthDate = getMonthWithOffset(eventMonthOffset);
+        eventRangeLabel.textContent = monthDate.toLocaleDateString(undefined, {
+          month: "long",
+          year: "numeric"
+        });
+        renderEventsMonth(monthDate);
+      } else if (eventMode === "weekly") {
+        const weekDates = getWeekDates(eventWeekOffset);
+        eventRangeLabel.textContent = `${formatDate(weekDates[0])} - ${formatDate(weekDates[6])}`;
+        renderEventsWeek(weekDates);
+      } else {
+        const dayDate = getDateWithOffset(eventDayOffset);
+        eventRangeLabel.textContent = formatFullDate(dayDate);
+        renderEventsDay(dayDate);
+      }
+    }
+
+    function renderEventsMonth(monthDate) {
+      const monthInfo = getMonthGrid(monthDate.getFullYear(), monthDate.getMonth());
+      eventMonthCells.innerHTML = "";
+
+      for (const date of monthInfo.gridDates) {
+        const cell = document.createElement("div");
+        cell.className = "month-cell event-month-cell";
+        if (date.getMonth() !== monthDate.getMonth()) {
+          cell.classList.add("outside");
+        }
+        if (isToday(date)) {
+          cell.classList.add("today");
+        }
+
+        const dayNum = document.createElement("div");
+        dayNum.className = "month-day";
+        dayNum.textContent = String(date.getDate());
+
+        const list = document.createElement("div");
+        list.className = "event-month-list";
+        const dayEvents = getEventsForDate(toDateKey(date));
+
+        for (const event of dayEvents.slice(0, 3)) {
+          const chip = document.createElement("div");
+          chip.className = "event-chip";
+          chip.textContent = `${event.startTime} ${event.title}`;
+          chip.title = "Event preview";
+          list.appendChild(chip);
+        }
+        if (dayEvents.length > 3) {
+          const more = document.createElement("div");
+          more.className = "event-more";
+          more.textContent = `+${dayEvents.length - 3} more`;
+          list.appendChild(more);
+        }
+
+        cell.addEventListener("click", () => {
+          setEventDayDate(date);
+          eventMode = "day";
+          renderEventsView();
+        });
+
+        cell.append(dayNum, list);
+        eventMonthCells.appendChild(cell);
+      }
+    }
+
+    function renderEventsWeek(weekDates) {
+      eventWeekGrid.innerHTML = "";
+
+      for (const date of weekDates) {
+        const col = document.createElement("div");
+        col.className = "event-week-col";
+
+        const head = document.createElement("div");
+        head.className = "event-week-head";
+        head.textContent = date.toLocaleDateString(undefined, { weekday: "short" });
+
+        const dateText = document.createElement("div");
+        dateText.className = "event-week-date";
+        dateText.textContent = formatDate(date);
+        head.appendChild(dateText);
+        head.addEventListener("click", () => {
+          setEventDayDate(date);
+          eventMode = "day";
+          renderEventsView();
+        });
+        col.appendChild(head);
+
+        const dayEvents = getEventsForDate(toDateKey(date));
+        if (dayEvents.length === 0) {
+          const empty = document.createElement("div");
+          empty.className = "event-empty";
+          empty.textContent = "No events";
+          col.appendChild(empty);
+        } else {
+          for (const event of dayEvents) {
+            col.appendChild(buildEventCard(event));
+          }
+        }
+
+        eventWeekGrid.appendChild(col);
+      }
+    }
+
+    function renderEventsDay(date) {
+      eventDayBoard.innerHTML = "";
+      const dayEvents = getEventsForDate(toDateKey(date));
+      if (dayEvents.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "event-empty";
+        empty.textContent = "No events for this day";
+        eventDayBoard.appendChild(empty);
+        return;
+      }
+      let lastStartTime = null;
+      for (const event of dayEvents) {
+        const row = document.createElement("div");
+        row.className = "event-day-row";
+
+        const time = document.createElement("div");
+        time.className = "event-day-time";
+        const isRepeatedStart = event.startTime === lastStartTime;
+        if (isRepeatedStart) {
+          time.innerHTML = "&nbsp;";
+        } else {
+          time.textContent = formatEventClock(event.startTime);
+        }
+        if (!isRepeatedStart && event.endTime) {
+          const end = document.createElement("span");
+          end.className = "event-day-time-end";
+          end.textContent = formatEventClock(event.endTime);
+          time.appendChild(end);
+        }
+
+        row.append(time, buildEventCard(event));
+        eventDayBoard.appendChild(row);
+        lastStartTime = event.startTime;
+      }
+    }
+
+    function buildEventCard(event) {
+      const card = document.createElement("div");
+      card.className = "event-card";
+
+      const title = document.createElement("div");
+      title.className = "event-card-title";
+      title.textContent = event.title;
+
+      const meta = document.createElement("div");
+      meta.className = "event-card-meta";
+      meta.textContent = formatEventTimeRange(event.startTime, event.endTime);
+
+      card.append(title, meta);
+
+      if (event.notes) {
+        const notes = document.createElement("div");
+        notes.className = "event-card-meta";
+        notes.textContent = event.notes;
+        card.appendChild(notes);
+      }
+
+      const actions = document.createElement("div");
+      actions.className = "event-card-actions";
+
+      const edit = document.createElement("button");
+      edit.type = "button";
+      edit.className = "event-card-edit";
+      edit.textContent = "Edit";
+      edit.addEventListener("click", () => startEditEvent(event.id));
+
+      const del = document.createElement("button");
+      del.type = "button";
+      del.className = "event-card-delete";
+      del.textContent = "Delete";
+      del.addEventListener("click", () => deleteEvent(event.id));
+      actions.append(edit, del);
+      card.appendChild(actions);
+      return card;
+    }
+
+    function getEventsForDate(dateKey) {
+      const events = Array.isArray(state.events) ? state.events : [];
+      return events
+        .filter((event) => event.date === dateKey)
+        .sort(compareEvents);
+    }
+
+    function compareEvents(a, b) {
+      if (a.date !== b.date) return a.date.localeCompare(b.date);
+      const t1 = toEventMinutes(a.startTime);
+      const t2 = toEventMinutes(b.startTime);
+      if (t1 !== t2) return t1 - t2;
+      return String(a.title).localeCompare(String(b.title));
+    }
+
+    function toEventMinutes(time) {
+      const normalized = normalizeEventTime(time);
+      if (!normalized) return 0;
+      const [hour, minute] = normalized.split(":").map(Number);
+      return hour * 60 + minute;
+    }
+
+    function formatEventTimeRange(startTime, endTime) {
+      if (!endTime) return startTime;
+      return `${startTime} - ${endTime}`;
+    }
+
+    function formatEventClock(time) {
+      const normalized = normalizeEventTime(time);
+      if (!normalized) return "";
+      const [hourRaw, minute] = normalized.split(":").map(Number);
+      const ampm = hourRaw >= 12 ? "PM" : "AM";
+      const hour12 = hourRaw % 12 === 0 ? 12 : hourRaw % 12;
+      return `${hour12}:${String(minute).padStart(2, "0")} ${ampm}`;
     }
 
     function renderWeeklyProgress(weekDates) {
@@ -2511,6 +3665,15 @@
       today.setHours(0, 0, 0, 0);
       const oneDay = 24 * 60 * 60 * 1000;
       dayOffset = Math.round((target.getTime() - today.getTime()) / oneDay);
+    }
+
+    function setEventDayDate(date) {
+      const target = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      target.setHours(0, 0, 0, 0);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const oneDay = 24 * 60 * 60 * 1000;
+      eventDayOffset = Math.round((target.getTime() - today.getTime()) / oneDay);
     }
 
     function fromDateKey(dateKey) {
